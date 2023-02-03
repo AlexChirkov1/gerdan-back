@@ -4,6 +4,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json } from 'body-parser';
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -33,6 +34,6 @@ async function bootstrap() {
         SwaggerModule.setup('swagger', app, document);
     }
 
-    await app.listen(port);
+    await app.listen(process.env.PORT || port);
 }
 bootstrap();
