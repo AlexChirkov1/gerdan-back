@@ -1,4 +1,5 @@
 {
+    "version": 2,
     "builds": [
         {
             "src": "src/main.ts",
@@ -7,16 +8,16 @@
     ],
     "routes": [
         {
+            "src": "/(.*)",
             "dest": "src/main.ts",
             "methods": [
                 "GET",
                 "POST",
-                "PATCH",
                 "PUT",
-                "DELETE"
-            ],
-            "src": "/(.*)"
+                "DELETE",
+                "PATCH",
+                "PUT"
+            ]
         }
-    ],
-    "version": 2
+    ]
 }
