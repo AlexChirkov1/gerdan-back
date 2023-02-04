@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json } from 'body-parser';
 
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './errors/http_exception.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,6 +19,7 @@ async function bootstrap() {
     app.use(json({ limit: '10mb' }));
 
     app.setGlobalPrefix('api');
+    app.useGlobalFilters(new HttpExceptionFilter());
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector), {
         enableImplicitConversion: true,
         excludeExtraneousValues: true

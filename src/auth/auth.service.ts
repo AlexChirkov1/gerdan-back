@@ -2,6 +2,7 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
+import { ERROR_MESSAGES } from 'src/errors/messages';
 import { PasswordHelper } from 'src/utils/password.helper';
 
 export type SessionTokens = {
@@ -42,7 +43,7 @@ export class AuthService {
         try {
             data = verify(token, jwtKey);
         } catch (error) {
-            throw new UnprocessableEntityException(error);
+            throw new UnprocessableEntityException(ERROR_MESSAGES.AUTH.invalid_token);
         }
         return data;
     }

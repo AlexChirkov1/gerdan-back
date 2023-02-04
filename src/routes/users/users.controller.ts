@@ -1,12 +1,13 @@
-import { BadRequestException, Body, Controller, Get, Patch, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Patch, UseInterceptors } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
-import { ERROR_MESSAGES } from 'src/common/error_messages';
 import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
+import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
+import { ERROR_MESSAGES } from 'src/errors/messages';
 import { GerdansService } from '../gerdans/gerdans.service';
 import { UserDetailsOutput } from './api/user-details.output';
 import { UserInput } from './api/user.input';
@@ -47,9 +48,9 @@ export class UsersController {
         @Body() body: UserInput,
     ): Promise<UserDetailsDto> {
         let existedUser = await this.usersService.findUserByEmail(body.email, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.auth.email_already_exist);
+        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
         existedUser = await this.usersService.findUserByUsername(body.username, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.auth.username_already_exist);
+        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.username_already_exist);
 
         let user = await this.usersService.findUserById(session.userId, transaction);
         await this.usersService.update(user, body, transaction);

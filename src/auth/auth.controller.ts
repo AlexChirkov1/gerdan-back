@@ -1,10 +1,11 @@
-import { BadRequestException, Body, Controller, Post, Put, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Put, UseInterceptors } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Transaction } from 'sequelize';
-import { ERROR_MESSAGES } from 'src/common/error_messages';
 import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
+import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
+import { ERROR_MESSAGES } from 'src/errors/messages';
 import { UsersService } from 'src/routes/users/users.service';
 import { LoginInput } from './api/login_.input';
 import { RefreshSessionInput } from './api/refresh_session.input';
@@ -17,7 +18,6 @@ import { SessionDto } from './dtos/session.dto';
 import { LoginSchema } from './schemas/login.schema';
 import { RefreshSessionSchema } from './schemas/refresh_session.schema';
 import { RegistrationSchema } from './schemas/registration.schema';
-
 
 @ApiTags('auth')
 @Controller('auth')
@@ -37,9 +37,9 @@ export class AuthController {
         @Body() body: RegistrationInput
     ): Promise<NewUserDto> {
         let existedUser = await this.usersService.findUserByEmail(body.email, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.auth.email_already_exist);
+        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
         existedUser = await this.usersService.findUserByUsername(body.username, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.auth.username_already_exist);
+        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.username_already_exist);
         const user = await this.usersService.create(body, transaction);
         return new NewUserDto(user);
     }
@@ -53,8 +53,8 @@ export class AuthController {
         @Body() body: LoginInput
     ): Promise<SessionDto> {
         const user = await this.usersService.findUserByEmail(body.email, transaction);
-        if (!user) throw new BadRequestException(ERROR_MESSAGES.auth.invalid_credentials);
-        if (!this.authService.comparePasswords(body.password, user.password, user.salt)) throw new BadRequestException(ERROR_MESSAGES.auth.invalid_credentials);
+        if (!user) throw new BadRequestException(ERROR_MESSAGES.AUTH.invalid_credentials);
+        if (!this.authService.comparePasswords(body.password, user.password, user.salt)) throw new BadRequestException(ERROR_MESSAGES.AUTH.invalid_credentials);
         const { accessToken, refreshToken } = this.authService.generateTokens(user.id);
         return new SessionDto(accessToken, refreshToken);
     }
@@ -68,7 +68,7 @@ export class AuthController {
         @Body() body: RefreshSessionInput
     ): Promise<SessionDto> {
         const tokenData = this.authService.verifyToken(body.refreshToken);
-        if (!tokenData?.userId || !tokenData?.sessionToken || tokenData?.type !== JWT_TYPES.refresh) throw new BadRequestException(ERROR_MESSAGES.auth.invalid_token);
+        if (!tokenData?.userId || !tokenData?.sessionToken || tokenData?.type !== JWT_TYPES.refresh) throw new BadRequestException(ERROR_MESSAGES.AUTH.invalid_token);
         const user = await this.usersService.findUserById(tokenData.userId, transaction);
         const { accessToken, refreshToken } = this.authService.generateTokens(user.id);
         return new SessionDto(accessToken, refreshToken);

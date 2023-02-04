@@ -1,8 +1,9 @@
-import { Controller, Get, NotFoundException, Param, Res } from '@nestjs/common';
+import { Controller, Get, Param, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { ERROR_MESSAGES } from 'src/common/error_messages';
 import { FileIdPipe } from 'src/common/file_id.pipe';
+import { NotFoundException } from 'src/errors/handlers/not_found.exception';
+import { ERROR_MESSAGES } from 'src/errors/messages';
 import { BucketService } from './bucket.service';
 
 @ApiTags('bucket')
@@ -16,7 +17,7 @@ export class BucketController {
         @Res() res: Response
     ) {
         const file = await this.bucketService.getFileById(id);
-        if (!file) throw new NotFoundException(ERROR_MESSAGES.file.not_found);
+        if (!file) throw new NotFoundException(ERROR_MESSAGES.FILES.not_found);
         res.sendFile(file.path);
     }
 }

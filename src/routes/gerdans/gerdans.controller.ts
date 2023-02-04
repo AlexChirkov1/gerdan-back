@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Transaction } from 'sequelize';
@@ -7,10 +7,11 @@ import { Auth } from 'src/auth/guards';
 import { Base10Pipe } from 'src/common/base10.pipe';
 import { CursorPaginationInput } from 'src/common/cursor_pagination.input';
 import { CursorPaginationSchema } from 'src/common/cursor_pagination.schema';
-import { ERROR_MESSAGES } from 'src/common/error_messages';
 import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
+import { NotFoundException } from 'src/errors/handlers/not_found.exception';
+import { ERROR_MESSAGES } from 'src/errors/messages';
 import { createGerdanPreview, generateGerdanPDF } from 'src/services/gerdan/gerdan';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { BucketService } from '../bucket/bucket.service';
@@ -64,7 +65,7 @@ export class GerdansController {
         @Param('id', Base10Pipe) id: string,
     ): Promise<GerdanDto> {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
-        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.gerdans.not_found);
+        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
 
         return new GerdanDto(gerdan);
@@ -80,7 +81,7 @@ export class GerdansController {
         @Res() res: Response,
     ) {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
-        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.gerdans.not_found);
+        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
         const user = await this.usersService.findUserById(session.userId, transaction);
 
@@ -123,7 +124,7 @@ export class GerdansController {
         @Body() body: GerdanInput
     ): Promise<GerdanDto> {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
-        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.gerdans.not_found);
+        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
         await this.gerdansService.update(existedGerdan, body, transaction);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
 
@@ -145,7 +146,7 @@ export class GerdansController {
         @Param('id', Base10Pipe) id: string,
     ) {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
-        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.gerdans.not_found);
+        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
         if (existedGerdan?.previewId) await this.bucketService.destroyFile(existedGerdan.previewId, transaction);
         await existedGerdan.destroy({ transaction });
     }

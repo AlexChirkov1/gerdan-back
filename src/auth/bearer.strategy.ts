@@ -1,6 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
+import { UnauthorizedException } from 'src/errors/handlers/unauthorized_exception';
 import { AuthService, JWT_TYPES } from './auth.service';
 import { UserSessionData } from './decorators/userSession.decorator';
 
