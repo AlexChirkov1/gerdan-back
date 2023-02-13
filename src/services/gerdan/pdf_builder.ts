@@ -29,7 +29,6 @@ export class PDFBuilder {
     } as const;
     private readonly metadata: MetaData;
     private doc: typeof PDFDocument;
-    private indexSize = 0;
     constructor(path: string, metadata: MetaData) {
         this.metadata = metadata;
         this.doc = new PDFDocument({
@@ -54,7 +53,7 @@ export class PDFBuilder {
     public addInfoPage(userName: string, gerdanName: string) {
         const TITLE_FONT = 24;
         const SUBTITLE_FONT = 16;
-        const fromSite = `generated on ${process.env.SITE_MARK}`;
+        const fromSite = `Generated on ${process.env.SITE_MARK}`;
         const siteURL = process.env.SITE_URL;
         const byUser = `by @${userName}`;
 
@@ -81,28 +80,40 @@ export class PDFBuilder {
 
     public drawStatistics(statistics: Statistics) {
         this.doc.fontSize(this.FONT_SIZE);
-        this.doc.text(`Сolumns (стовпців): ${statistics.columns}. Rows (рядків): ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 300);
+        this.doc.text(`Columns ${statistics.columns}, rows: ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 300);
 
+        const SPACE = 18;
+        const MAX_ROWS = 15;
+        const MAX_COLUMNS = 2;
+        const initialTextPositionX = PDFBuilder.docSize.marginLeft;
+        const initialTextPositionY = 320;
+        let textPositionX = initialTextPositionX as number;
 
-        const space = 18;
-        const maxRows = 15;
-        const maxColumns = 3;
-        const textPositionX = PDFBuilder.docSize.marginLeft;
-        let textPositionY = 300;
+        function* pixelsGenerator() {
+            for (const [key, value] of Object.entries(statistics.colors)) {
+                yield [key, value];
+            }
+        }
 
-        textPositionY += space;
-        textPositionY += space;
-        for (const [key, value] of Object.entries(statistics.colors)) {
-            textPositionY += space;
-            this.doc
-                .fillColor(BLACK)
-                .text(`${[key]} - ${value.color}  (${value.count})`, textPositionX, textPositionY);
-            this.drawPixel(
-                textPositionX - this.metadata.pixelSize,
-                textPositionY - (space - this.FONT_SIZE) / 2,
-                value.color,
-                this.FONT_SIZE
-            );
+        const pixels = pixelsGenerator();
+
+        for (let x = 0; x < MAX_COLUMNS; x++) {
+            let textPositionY = initialTextPositionY as number;
+            for (let y = 0; y < MAX_ROWS; y++) {
+                textPositionY += SPACE;
+                const pixel = pixels.next();
+                if (pixel.done) break;
+                this.drawPixel(
+                    textPositionX,
+                    textPositionY,
+                    pixel.value[1].color,
+                    this.FONT_SIZE
+                );
+                this.doc
+                    .fillColor(BLACK)
+                    .text(`${pixel.value[0]}: ${pixel.value[1].color} - ${pixel.value[1].count} шт.`, textPositionX + this.metadata.pixelSize, textPositionY);
+            }
+            textPositionX += 250;
         }
     }
 
