@@ -22,7 +22,8 @@ export class FileStorageHelper {
             break;
         }
 
-        await unlink(path);
+        if (file) await unlink(path);
+        
         return file;
     }
 

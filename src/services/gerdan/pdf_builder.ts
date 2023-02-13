@@ -1,5 +1,6 @@
 import { createWriteStream } from 'fs';
 import * as PDFDocument from 'pdfkit';
+import { FontLoader } from 'src/utils/font_loader';
 import { BLACK } from './colors';
 import { PixelsGrid, Statistics } from './gerdan';
 
@@ -7,21 +8,13 @@ type MetaData = {
     Title: string;
     Author: string;
     pixelSize: number;
-    indexSize: number;
     height: number;
     width: number;
     backgroundColor: string;
 };
 
 export class PDFBuilder {
-    private readonly charactersSet = [
-        'Ø', '1', '2', '3', '4',
-        '5', '6', '7', '8', '9',
-        'A', 'B', 'C', 'D', 'E',
-        'F', 'G', 'H', 'J', 'K',
-        'L', 'M', 'N', 'O', 'P',
-        'R', 'S', 'T', 'U', 'V',
-        'W', 'X', 'Y', 'Z'] as const;
+    private readonly FONT_SIZE = 14;
     static readonly docSize = {
         width: 595.28,
         height: 841.89,
@@ -36,6 +29,7 @@ export class PDFBuilder {
     } as const;
     private readonly metadata: MetaData;
     private doc: typeof PDFDocument;
+    private indexSize = 0;
     constructor(path: string, metadata: MetaData) {
         this.metadata = metadata;
         this.doc = new PDFDocument({
@@ -47,20 +41,36 @@ export class PDFBuilder {
                 Title: this.metadata.Title,
                 Author: this.metadata.Author
             },
-            pdfVersion: '1.7'
+            pdfVersion: '1.7',
         });
+
+        this.doc.registerFont('Roboto-Regular', FontLoader.getRobotoRegular());
+        this.doc.registerFont('Roboto-Medium', FontLoader.getRobotoMedium());
+        this.doc.font('Roboto-Regular');
 
         this.doc.pipe(createWriteStream(path));
     }
 
     public addInfoPage(userName: string, gerdanName: string) {
+        const TITLE_FONT = 24;
+        const SUBTITLE_FONT = 16;
+        const fromSite = `generated on ${process.env.SITE_MARK}`;
+        const siteURL = process.env.SITE_URL;
+        const byUser = `by @${userName}`;
+
         this.doc
             .addPage()
-            .fontSize(60)
-            .text(gerdanName, PDFBuilder.docSize.marginRight, 200)
-            .fontSize(42)
-            .text(`by @${userName}`)
-            .text('generated on Gerdan.js');
+            .font('Roboto-Medium')
+            .fontSize(TITLE_FONT)
+            .text(gerdanName, this.centeredPositionOfText(gerdanName, TITLE_FONT), 100)
+            .font('Roboto-Regular')
+            .fontSize(SUBTITLE_FONT)
+            .moveDown()
+            .text(byUser, this.centeredPositionOfText(byUser, SUBTITLE_FONT))
+            .moveDown()
+            .moveDown()
+            .text(fromSite, this.centeredPositionOfText(fromSite, SUBTITLE_FONT))
+            .text(siteURL, this.centeredPositionOfText(siteURL, SUBTITLE_FONT), null, { link: process.env.SITE_URL, underline: true, oblique: true });
 
         this.addSiteMark();
     }
@@ -70,39 +80,41 @@ export class PDFBuilder {
     }
 
     public drawStatistics(statistics: Statistics) {
-        const textPositionX = PDFBuilder.docSize.width - PDFBuilder.docSize.marginLeft - 100;
-        let textPositionY = 400;
-        const textSize = 14;
-        const space = 18;
-        this.doc
-            .fontSize(textSize);
-        textPositionY += space;
-        this.doc.text(`Rows: ${statistics.rows}`, textPositionX, textPositionY);
-        textPositionY += space;
-        this.doc.text(`Columns: ${statistics.columns}`, textPositionX, textPositionY);
+        this.doc.fontSize(this.FONT_SIZE);
+        this.doc.text(`Сolumns (стовпців): ${statistics.columns}. Rows (рядків): ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 300);
 
+
+        const space = 18;
+        const maxRows = 15;
+        const maxColumns = 3;
+        const textPositionX = PDFBuilder.docSize.marginLeft;
+        let textPositionY = 300;
+
+        textPositionY += space;
+        textPositionY += space;
         for (const [key, value] of Object.entries(statistics.colors)) {
             textPositionY += space;
-            this.doc.text(`${this.charactersSet[key]} - ${value.color} - ${value.count}`, textPositionX, textPositionY);
+            this.doc
+                .fillColor(BLACK)
+                .text(`${[key]} - ${value.color}  (${value.count})`, textPositionX, textPositionY);
             this.drawPixel(
                 textPositionX - this.metadata.pixelSize,
-                textPositionY - (space - textSize) / 2,
+                textPositionY - (space - this.FONT_SIZE) / 2,
                 value.color,
-                textSize
+                this.FONT_SIZE
             );
         }
     }
 
     public drawPixelsGrid(pixelsGrid: PixelsGrid) {
+        const fontSize = this.setFontSize();
         const pixelsPerPage = ~~(PDFBuilder.printSize.height / this.metadata.pixelSize);
-        const totalPages = Math.floor(this.metadata.height / pixelsPerPage);
+        const totalPages = ~~(this.metadata.height / pixelsPerPage);
         let page = -1;
         for (let y = 0; y < this.metadata.height; y++) {
             if (!(y % pixelsPerPage)) {
                 page++;
-                this.doc
-                    .addPage()
-                    .fontSize(this.metadata.indexSize);
+                this.doc.addPage().fontSize(fontSize);
                 this.addPageNumber(page, totalPages);
                 this.addSiteMark();
             }
@@ -113,13 +125,20 @@ export class PDFBuilder {
                     this.pixelPositionY(y - pixelsPerPage * page),
                     color
                 );
-                if (color !== this.metadata.backgroundColor)
+                if (color !== this.metadata.backgroundColor) {
+                    const [indexX, indexY] = this.centeredPositionOfIndex(
+                        pixelsGrid[y][x].index,
+                        fontSize,
+                        this.pixelPositionX(x),
+                        this.pixelPositionY(y - pixelsPerPage * page)
+                    );
                     this.writeIndex(
-                        this.indexPosition(this.pixelPositionX(x)),
-                        this.indexPosition(this.pixelPositionY(y - pixelsPerPage * page)),
+                        indexX,
+                        indexY - pixelsPerPage * page,
                         pixelsGrid[y][x].index,
                         pixelsGrid[y][x].indexColor
                     );
+                }
             }
         }
     }
@@ -128,17 +147,7 @@ export class PDFBuilder {
         if (!index) return;
         this.doc
             .fillColor(color ?? BLACK)
-            .text(
-                this.charactersSet[index],
-                this.indexPosition(x),
-                this.indexPosition(y),
-                {
-                    lineBreak: false,
-                });
-    }
-
-    private indexPosition(pos: number): number {
-        return pos + this.metadata.pixelSize / 7;
+            .text(index.toString(), x, y, { lineBreak: false, });
     }
 
     private pixelPositionX(x: number): number {
@@ -167,16 +176,32 @@ export class PDFBuilder {
 
     private addSiteMark() {
         const siteMark = process.env.SITE_MARK as string;
-        const markWidth = this.doc
-            .fontSize(14)
-            .widthOfString(siteMark);
+        const textPosition = this.centeredPositionOfText(siteMark, this.FONT_SIZE);
 
         this.doc
             .fontSize(14)
             .fillColor(BLACK)
-            .text('Gerdan.js',
-                PDFBuilder.docSize.width / 2 - markWidth / 2,
+            .text(siteMark,
+                textPosition,
                 800
             );
+    }
+
+    private centeredPositionOfText(text: string, fontSize: number) {
+        return (PDFBuilder.docSize.width / 2 - this.doc.fontSize(fontSize).widthOfString(text) / 2);
+    }
+
+    private centeredPositionOfIndex(index: number, fontSize: number, x: number, y: number) {
+        return [
+            x + (this.metadata.pixelSize - this.doc.fontSize(fontSize).widthOfString(index.toString())) / 2,
+            y + (this.metadata.pixelSize - this.doc.fontSize(fontSize).heightOfString(index.toString())) / 2
+        ] as const;
+    }
+
+    private setFontSize(fontSize = 40) {
+        const textWidht = this.doc.fontSize(fontSize).widthOfString('88');
+        const textHeight = this.doc.fontSize(fontSize).heightOfString('88');
+        if (textHeight < this.metadata.pixelSize && textWidht < this.metadata.pixelSize) return fontSize;
+        return this.setFontSize(fontSize - 2);
     }
 }

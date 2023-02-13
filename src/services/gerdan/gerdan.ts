@@ -1,4 +1,4 @@
-import { unlinkSync } from 'fs';
+import { existsSync, unlinkSync } from 'fs';
 import { Gerdan } from 'src/database/models/gerdan.model';
 import { User } from 'src/database/models/user.model';
 import { WHITE } from './colors';
@@ -23,7 +23,6 @@ export type PixelsGrid = PDFPixel[][];
 
 export function generateGerdanPDF(gerdan: Gerdan, user: User, path: string): void {
     const pixelSize = calculatePixelsSize(gerdan);
-    const indexSize = calculateIndexesSize(pixelSize);
     const pixelsGrid = mapActionsToPixels(gerdan);
     const statistics = collectStatistic(pixelsGrid, gerdan.width, gerdan.height);
 
@@ -31,7 +30,6 @@ export function generateGerdanPDF(gerdan: Gerdan, user: User, path: string): voi
         Title: gerdan.name,
         Author: user.username,
         pixelSize,
-        indexSize,
         height: gerdan.height,
         width: gerdan.width,
         backgroundColor: gerdan.backgroundColor,
@@ -43,7 +41,7 @@ export function generateGerdanPDF(gerdan: Gerdan, user: User, path: string): voi
         doc.closeDocument();
     } catch (error) {
         doc.closeDocument();
-        unlinkSync(path);
+        if (existsSync(path)) unlinkSync(path);
         throw error;
     }
 }
@@ -101,10 +99,6 @@ function collectStatistic(pixelsGrid: PixelsGrid, width: number, height: number)
     }
 
     return statistics;
-}
-
-function calculateIndexesSize(pixelSize: number) {
-    return pixelSize * .8;
 }
 
 function calculatePixelsSize(gerdan: Gerdan): number {

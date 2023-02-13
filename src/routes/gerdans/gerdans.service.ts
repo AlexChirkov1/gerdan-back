@@ -71,15 +71,27 @@ export class GerdansService {
     }
 
     async createGerdan(gerdanInput: GerdanInput, userId: ID, transaction?: Transaction): Promise<Gerdan> {
-        return await this.gerdanModel.create({ ...gerdanInput, userId }, { transaction });
+        return await this.gerdanModel.create({
+            ...gerdanInput,
+            userId,
+            backgroundColor: gerdanInput.backgroundColor.toLowerCase()
+        }, { transaction });
     }
 
     async updateGerdan(gerdan: Gerdan, gerdanInput: GerdanInput, transaction?: Transaction): Promise<void> {
-        await gerdan.update(gerdanInput, { transaction });
+        await gerdan.update({
+            ...gerdanInput,
+            backgroundColor: gerdanInput.backgroundColor.toLowerCase()
+        }, { transaction });
     }
 
     async addPixels(pixels: PixelInput[], gerdanId: ID, transaction?: Transaction): Promise<void> {
-        const actionsData = pixels.map((pixel) => ({ ...pixel, gerdanId }));
+        const actionsData = pixels.map((pixel) => ({
+            ...pixel,
+            gerdanId,
+            color: pixel.color.toLowerCase(),
+            indexColor: pixel.indexColor.toLowerCase(),
+        }));
         await this.pixelModel.bulkCreate(actionsData, { transaction });
     }
 
