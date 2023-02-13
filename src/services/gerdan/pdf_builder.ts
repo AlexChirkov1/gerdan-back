@@ -134,7 +134,7 @@ export class PDFBuilder {
                     );
                     this.writeIndex(
                         indexX,
-                        indexY - pixelsPerPage * page,
+                        indexY,
                         pixelsGrid[y][x].index,
                         pixelsGrid[y][x].indexColor
                     );
