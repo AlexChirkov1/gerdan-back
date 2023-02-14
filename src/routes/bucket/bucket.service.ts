@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { randomUUID } from 'crypto';
-import { unlink, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { cwd } from 'process';
 import { Transaction } from 'sequelize';
 import { FileTypes } from 'src/database/file_types';
 import { File } from 'src/database/models/file.model';
@@ -20,19 +16,16 @@ export class BucketService {
     }
 
     async saveFile(data: Buffer, type: FileTypes, transaction?: Transaction): Promise<File> {
-        const path = join(cwd(), 'database', 'bucket', `${randomUUID()}.${type}`);
-        const file = await this.fileModel.create({
-            path,
-            type: FileTypes[type],
-        }, { transaction });
-        await writeFile(path, data);
-        return file;
+        return await this.fileModel.create({ blob: data, type: FileTypes[type], }, { transaction });
+    }
+
+    async updateFile(fileId: ID, data: Buffer, transaction?: Transaction): Promise<void> {
+        const file = await this.fileModel.findByPk(fileId, { transaction });
+        await file.update({ blob: data }, { transaction });
     }
 
     async destroyFile(fileId: ID, transaction?: Transaction): Promise<void> {
         const file = await this.fileModel.findByPk(fileId, { transaction });
-        if (!file) return;
-        await unlink(file.path);
         await file.destroy({ transaction });
     }
 }

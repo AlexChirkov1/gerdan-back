@@ -18,6 +18,6 @@ export class BucketController {
     ) {
         const file = await this.bucketService.getFileById(id);
         if (!file) throw new NotFoundException(ERROR_MESSAGES.FILES.not_found);
-        res.sendFile(file.path);
+        res.send(file.blob);
     }
 }

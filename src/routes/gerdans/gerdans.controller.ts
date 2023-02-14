@@ -103,8 +103,6 @@ export class GerdansController {
     ): Promise<GerdanDto> {
         const newGerdan = await this.gerdansService.create(body, session.userId, transaction);
         const gerdan = await this.gerdansService.getDetails(newGerdan.id, transaction);
-
-        if (gerdan?.previewId) await this.bucketService.destroyFile(gerdan.previewId, transaction);
         const preview = createGerdanPreview(gerdan);
         const file = await this.bucketService.saveFile(preview, 'jpg', transaction);
         await gerdan.update({ previewId: file.id }, { transaction });
@@ -127,11 +125,8 @@ export class GerdansController {
         if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
         await this.gerdansService.update(existedGerdan, body, transaction);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
-
-        if (gerdan?.previewId) await this.bucketService.destroyFile(gerdan.previewId, transaction);
         const preview = createGerdanPreview(gerdan);
-        const file = await this.bucketService.saveFile(preview, 'jpg', transaction);
-        await gerdan.update({ previewId: file.id }, { transaction });
+        await this.bucketService.updateFile(gerdan.previewId, preview, transaction);
 
         return new GerdanDto(gerdan);
     }
