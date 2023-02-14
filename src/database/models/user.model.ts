@@ -4,13 +4,6 @@ import { BaseModel } from '../common/base.model';
 
 @Table
 export class User extends BaseModel {
-
-    @Column(DataType.STRING)
-    firstName: string;
-
-    @Column(DataType.STRING)
-    lastName: string;
-
     @Column({
         type: DataType.STRING,
         unique: true,
