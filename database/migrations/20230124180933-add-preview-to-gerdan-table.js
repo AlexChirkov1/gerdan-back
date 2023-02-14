@@ -2,7 +2,7 @@
 
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.addColumn('Gerdans', 'previewId', Sequelize.DataTypes.UUID);
+        await queryInterface.addColumn('Gerdans', 'previewId', Sequelize.DataTypes.INTEGER);
         await queryInterface.addConstraint('Gerdans', {
             fields: ['previewId'],
             type: 'foreign key',

@@ -6,12 +6,12 @@ export class PasswordHelper {
             .toString('hex');
     }
     static hash(password: string): string {
-        return createHash('sha256')
+        return createHash('sha512')
             .update(password)
             .digest('hex');
     }
     static compare(password: string, hashedPassword: string): boolean {
-        return createHash('sha256')
+        return createHash('sha512')
             .update(password)
             .digest('hex') === hashedPassword;
     }

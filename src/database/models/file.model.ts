@@ -18,10 +18,10 @@ export class File extends Model {
     createdAt: Date;
 
     @Column({
-        type: DataType.STRING(),
+        type: DataType.BLOB,
         allowNull: false,
     })
-    path: string;
+    blob: Buffer;
 
     @Column({
         type: DataType.INTEGER,

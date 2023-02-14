@@ -12,8 +12,6 @@ module.exports = {
             },
             createdAt: Sequelize.DataTypes.DATE,
             updatedAt: Sequelize.DataTypes.DATE,
-            firstName: Sequelize.DataTypes.STRING,
-            lastName: Sequelize.DataTypes.STRING,
             username: {
                 type: Sequelize.DataTypes.STRING,
                 allowNull: false,

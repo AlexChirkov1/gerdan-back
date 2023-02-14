@@ -11,8 +11,8 @@ module.exports = {
                 unique: true,
             },
             createdAt: Sequelize.DataTypes.DATE,
-            path: {
-                type: Sequelize.DataTypes.STRING,
+            blob: {
+                type: Sequelize.DataTypes.BLOB,
                 allowNull: false,
             },
             type: {
