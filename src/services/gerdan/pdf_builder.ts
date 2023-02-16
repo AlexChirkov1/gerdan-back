@@ -71,10 +71,10 @@ export class PDFBuilder {
             .moveDown()
             .text(fromSite, this.centeredPositionOfText(fromSite, SUBTITLE_FONT))
             .text(siteURL, this.centeredPositionOfText(siteURL, SUBTITLE_FONT), null, { link: process.env.SITE_URL, underline: true, oblique: true });
-        if (process.env.SUPPORT_URL && process.env.SUPPORT_URL !== '') {
+        if (process.env.SUPPORT_US_URL && process.env.SUPPORT_US_URL !== '') {
             this.doc.moveDown()
                 .text(supportUsMessage, this.centeredPositionOfText(supportUsMessage, SUBTITLE_FONT))
-                .text(process.env.SUPPORT_URL, this.centeredPositionOfText(process.env.SUPPORT_URL, SUBTITLE_FONT), null, { link: process.env.SUPPORT_URL, underline: true, oblique: true });
+                .text(process.env.SUPPORT_US_URL, this.centeredPositionOfText(process.env.SUPPORT_US_URL, SUBTITLE_FONT), null, { link: process.env.SUPPORT_US_URL, underline: true, oblique: true });
         }
 
         this.addSiteMark();
