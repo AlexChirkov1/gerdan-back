@@ -97,8 +97,6 @@ function collectStatistic(pixelsGrid: PixelsGrid, width: number, height: number)
         if (statistics.columns < pixelsInARow) statistics.columns = pixelsInARow;
     }
 
-    console.log({ statistics });
-
     return statistics;
 }
 
