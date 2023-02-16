@@ -6,8 +6,6 @@
             "use": "@vercel/node"
         }
     ],
-    "outputDirectory": "src",
-    "buildCommand": "nest build",
     "routes": [
         {
             "src": "/(.*)",
@@ -16,8 +14,7 @@
                 "GET",
                 "POST",
                 "PUT",
-                "DELETE",
-                "PATCH"
+                "DELETE"
             ]
         }
     ]
