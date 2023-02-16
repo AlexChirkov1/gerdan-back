@@ -6,7 +6,6 @@
             "use": "@vercel/node"
         }
     ],
-    "framework": "nestjs",
     "outputDirectory": "src",
     "buildCommand": "nest build",
     "routes": [
