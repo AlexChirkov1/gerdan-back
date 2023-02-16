@@ -56,6 +56,7 @@ export class PDFBuilder {
         const fromSite = `Generated on ${process.env.SITE_MARK}`;
         const siteURL = process.env.SITE_URL;
         const byUser = `by @${userName}`;
+        const supportUsMessage = `Підтримати проєкт:`;
 
         this.doc
             .addPage()
@@ -70,6 +71,11 @@ export class PDFBuilder {
             .moveDown()
             .text(fromSite, this.centeredPositionOfText(fromSite, SUBTITLE_FONT))
             .text(siteURL, this.centeredPositionOfText(siteURL, SUBTITLE_FONT), null, { link: process.env.SITE_URL, underline: true, oblique: true });
+        if (process.env.SUPPORT_URL && process.env.SUPPORT_URL !== '') {
+            this.doc.moveDown()
+                .text(supportUsMessage, this.centeredPositionOfText(supportUsMessage, SUBTITLE_FONT))
+                .text(process.env.SUPPORT_URL, this.centeredPositionOfText(process.env.SUPPORT_URL, SUBTITLE_FONT), null, { link: process.env.SUPPORT_URL, underline: true, oblique: true });
+        }
 
         this.addSiteMark();
     }
@@ -80,13 +86,13 @@ export class PDFBuilder {
 
     public drawStatistics(statistics: Statistics) {
         this.doc.fontSize(this.FONT_SIZE);
-        this.doc.text(`Columns ${statistics.columns}, rows: ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 300);
+        this.doc.text(`Columns ${statistics.columns}, rows: ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 320);
 
         const SPACE = 18;
         const MAX_ROWS = 15;
         const MAX_COLUMNS = 2;
         const initialTextPositionX = PDFBuilder.docSize.marginLeft;
-        const initialTextPositionY = 320;
+        const initialTextPositionY = 330;
         let textPositionX = initialTextPositionX as number;
 
         function* pixelsGenerator() {

@@ -94,9 +94,10 @@ function collectStatistic(pixelsGrid: PixelsGrid, width: number, height: number)
             statistics.colors[pixelsGrid[y][x].index].count++;
             pixelsInARow++;
         }
-        statistics.rows++;
         if (statistics.columns < pixelsInARow) statistics.columns = pixelsInARow;
     }
+
+    console.log({ statistics });
 
     return statistics;
 }
