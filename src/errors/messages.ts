@@ -21,6 +21,10 @@ export const ERROR_MESSAGES = {
         invalid_token: {
             message: 'Your token invalid',
             code: 104
+        },
+        unauthorized: {
+            message: 'Unauthorized',
+            code: 105
         }
     },
     GERDANS: {
