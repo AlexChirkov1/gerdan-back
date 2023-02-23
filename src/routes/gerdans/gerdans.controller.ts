@@ -19,10 +19,12 @@ import { UsersService } from '../users/users.service';
 import { GerdanInput } from './api/gerdan.input';
 import { GerdanOutput } from './api/gerdan.output';
 import { GerdansOutput } from './api/gerdans.output';
+import { PDFOptionsInput } from './api/pdf_options.input';
 import { GerdanDto } from './dtos/gerdan.dto';
 import { GerdansDto } from './dtos/gerdans.dto';
 import { GerdansService } from './gerdans.service';
 import { GerdanSchema } from './schemas/gerdan.schema';
+import { PDFOptionsSchema } from './schemas/pdf_options.schema';
 
 @ApiTags('gerdans')
 @Controller('gerdans')
@@ -74,19 +76,40 @@ export class GerdansController {
     @Get(':id/pdf')
     @Auth()
     @ApiOperation({ summary: 'Get gerdan in PDF format' })
+    @ValidateSchema(PDFOptionsSchema)
     async getPDF(
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
         @Param('id', Base10Pipe) id: string,
+        @Query() query: PDFOptionsInput,
         @Res() res: Response,
     ) {
+
+        if (query.numbers && typeof query.numbers === 'string') {
+            switch (query.numbers) {
+                case 'true': {
+                    query.numbers = true;
+                    break;
+                }
+                case 'false': {
+                    query.numbers = false;
+                    break;
+                }
+                default: {
+                    query.numbers = true;
+                }
+            }
+        } else {
+            query.numbers = true;
+        }
+
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
         if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
         const user = await this.usersService.findUserById(session.userId, transaction);
 
         const filePath = FileStorageHelper.prepareFilePathToTempFolder(`${user.username}-${gerdan.name}`, 'pdf');
-        generateGerdanPDF(gerdan, user, filePath);
+        generateGerdanPDF(gerdan, user, filePath, query);
         const file = await FileStorageHelper.extractFile(filePath);
         res.status(201).send(file);
     }

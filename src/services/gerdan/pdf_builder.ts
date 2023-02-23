@@ -2,7 +2,7 @@ import { createWriteStream } from 'fs';
 import * as PDFDocument from 'pdfkit';
 import { FontLoader } from 'src/utils/font_loader';
 import { BLACK } from './colors';
-import { PixelsGrid, Statistics } from './gerdan';
+import { GerdanOptions, PixelsGrid, Statistics } from './gerdan';
 
 type MetaData = {
     Title: string;
@@ -28,8 +28,10 @@ export class PDFBuilder {
         height: this.docSize.height - this.docSize.marginTop - this.docSize.marginBottom,
     } as const;
     private readonly metadata: MetaData;
+    private readonly options: GerdanOptions;
     private doc: typeof PDFDocument;
-    constructor(path: string, metadata: MetaData) {
+    constructor(path: string, metadata: MetaData, options: GerdanOptions) {
+        this.options = options;
         this.metadata = metadata;
         this.doc = new PDFDocument({
             size: 'A4',
@@ -142,7 +144,7 @@ export class PDFBuilder {
                     this.pixelPositionY(y - pixelsPerPage * page),
                     color
                 );
-                if (color !== this.metadata.backgroundColor) {
+                if (this.options.numbers && color !== this.metadata.backgroundColor) {
                     const [indexX, indexY] = this.centeredPositionOfIndex(
                         pixelsGrid[y][x].index,
                         fontSize,

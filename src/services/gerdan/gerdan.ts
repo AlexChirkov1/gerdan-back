@@ -19,9 +19,13 @@ type PDFPixel = {
     indexColor: string;
 };
 
+export type GerdanOptions = {
+    numbers: boolean;
+};
+
 export type PixelsGrid = PDFPixel[][];
 
-export function generateGerdanPDF(gerdan: Gerdan, user: User, path: string): void {
+export function generateGerdanPDF(gerdan: Gerdan, user: User, path: string, options: GerdanOptions): void {
     const pixelSize = calculatePixelsSize(gerdan);
     const pixelsGrid = mapActionsToPixels(gerdan);
     const statistics = collectStatistic(pixelsGrid, gerdan.width, gerdan.height);
@@ -33,7 +37,7 @@ export function generateGerdanPDF(gerdan: Gerdan, user: User, path: string): voi
         height: gerdan.height,
         width: gerdan.width,
         backgroundColor: gerdan.backgroundColor,
-    });
+    }, options);
     try {
         doc.addInfoPage(user.username, gerdan.name);
         doc.drawStatistics(statistics);
