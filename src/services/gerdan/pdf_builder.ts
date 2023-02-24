@@ -55,9 +55,9 @@ export class PDFBuilder {
     public addInfoPage(userName: string, gerdanName: string) {
         const TITLE_FONT = 24;
         const SUBTITLE_FONT = 16;
-        const fromSite = `Generated on ${process.env.SITE_MARK}`;
+        const fromSite = `Зроблено на сайті ${process.env.SITE_MARK}`;
         const siteURL = process.env.SITE_URL;
-        const byUser = `by @${userName}`;
+        const byUser = `Автор: @${userName}`;
         const supportUsMessage = `Підтримати проєкт:`;
 
         this.doc
@@ -88,7 +88,7 @@ export class PDFBuilder {
 
     public drawStatistics(statistics: Statistics) {
         this.doc.fontSize(this.FONT_SIZE);
-        this.doc.text(`Columns ${statistics.columns}, rows: ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 320);
+        this.doc.text(`Стовпців ${statistics.columns}, рядків: ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 320);
 
         const SPACE = 18;
         const MAX_ROWS = 15;
