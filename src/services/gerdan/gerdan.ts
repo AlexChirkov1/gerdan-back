@@ -67,8 +67,8 @@ function mapActionsToPixels(gerdan: Gerdan): PixelsGrid {
                 let xEntry = false, yEntry = false;
                 const xCoord = x * gerdan.pixelSize;
                 const yCoord = y * gerdan.pixelSize;
-                if (value.x >= xCoord - gerdan.pixelSize && value.x < xCoord) xEntry = true;
-                if (value.y >= yCoord - gerdan.pixelSize && value.y < yCoord) yEntry = true;
+                if (value.x > xCoord - gerdan.pixelSize && value.x <= xCoord) xEntry = true;
+                if (value.y > yCoord - gerdan.pixelSize && value.y <= yCoord) yEntry = true;
                 return xEntry && yEntry;
             });
 
