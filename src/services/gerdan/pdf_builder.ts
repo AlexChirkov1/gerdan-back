@@ -90,6 +90,7 @@ export class PDFBuilder {
         this.doc.fontSize(this.FONT_SIZE);
         this.doc.text(`Стовпців ${statistics.columns}, рядків: ${statistics.rows}.`, PDFBuilder.docSize.marginLeft, 320);
 
+        const DEFAULT_PIXEL_SIZE = 25;
         const SPACE = 18;
         const MAX_ROWS = 15;
         const MAX_COLUMNS = 2;
@@ -117,9 +118,10 @@ export class PDFBuilder {
                     pixel.value[1].color,
                     this.FONT_SIZE
                 );
+
                 this.doc
                     .fillColor(BLACK)
-                    .text(`${pixel.value[0]}: ${pixel.value[1].color} - ${pixel.value[1].count} шт.`, textPositionX + this.metadata.pixelSize, textPositionY);
+                    .text(`${pixel.value[0]}: ${pixel.value[1].color} - ${pixel.value[1].count} шт.`, textPositionX + DEFAULT_PIXEL_SIZE, textPositionY);
             }
             textPositionX += 250;
         }

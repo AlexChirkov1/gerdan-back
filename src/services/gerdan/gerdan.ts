@@ -59,6 +59,33 @@ export function createGerdanPreview(gerdan: Gerdan): Buffer {
 }
 
 function mapActionsToPixels(gerdan: Gerdan): PixelsGrid {
+    const grid = createBlankGrid(gerdan);
+
+    for (let y = 0; y < grid.length; y++) {
+        for (let x = 0; x < grid[y].length; x++) {
+            const pixel = gerdan.pixels.find((value) => {
+                let xEntry = false, yEntry = false;
+                const xCoord = x * gerdan.pixelSize;
+                const yCoord = y * gerdan.pixelSize;
+                if (value.x >= xCoord - gerdan.pixelSize && value.x < xCoord) xEntry = true;
+                if (value.y >= yCoord - gerdan.pixelSize && value.y < yCoord) yEntry = true;
+                return xEntry && yEntry;
+            });
+
+            if (!pixel) continue;
+
+            grid[y][x] = {
+                color: pixel.color,
+                index: pixel.index,
+                indexColor: pixel.indexColor,
+            };
+        }
+    }
+
+    return grid;
+}
+
+function createBlankGrid(gerdan: Gerdan): PixelsGrid {
     const grid = [];
     for (let y = 0; y < gerdan.height; y++) {
         if (!grid[y]) grid[y] = [];
@@ -70,15 +97,6 @@ function mapActionsToPixels(gerdan: Gerdan): PixelsGrid {
             };
         }
     }
-
-    for (const pixel of gerdan.pixels) {
-        grid[pixel.y / gerdan.pixelSize][pixel.x / gerdan.pixelSize] = {
-            color: pixel.color,
-            index: pixel.index,
-            indexColor: pixel.indexColor,
-        };
-    }
-
     return grid;
 }
 
