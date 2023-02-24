@@ -79,9 +79,11 @@ export class GerdansService {
     }
 
     async updateGerdan(gerdan: Gerdan, gerdanInput: GerdanInput, transaction?: Transaction): Promise<void> {
+        gerdan.changed('updatedAt', true);
         await gerdan.update({
             ...gerdanInput,
-            backgroundColor: gerdanInput.backgroundColor.toLowerCase()
+            backgroundColor: gerdanInput.backgroundColor.toLowerCase(),
+            updatedAt: new Date(),
         }, { transaction });
     }
 
