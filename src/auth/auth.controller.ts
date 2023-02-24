@@ -7,7 +7,9 @@ import { TransactionInterceptor } from 'src/database/common/transaction.intercep
 import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { UsersService } from 'src/routes/users/users.service';
+import { GoogleService } from 'src/services/google/google.service';
 import { LoginInput } from './api/login_.input';
+import { LoginGoogleInput } from './api/login_google.input';
 import { RefreshSessionInput } from './api/refresh_session.input';
 import { RegistrationOutput } from './api/registration.output';
 import { RegistrationInput } from './api/registration_input';
@@ -16,6 +18,7 @@ import { AuthService, JWT_TYPES } from './auth.service';
 import { NewUserDto } from './dtos/new-user.dto';
 import { SessionDto } from './dtos/session.dto';
 import { LoginSchema } from './schemas/login.schema';
+import { LoginGoogleSchema } from './schemas/login_google.schema';
 import { RefreshSessionSchema } from './schemas/refresh_session.schema';
 import { RegistrationSchema } from './schemas/registration.schema';
 
@@ -26,7 +29,23 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly usersService: UsersService,
+        private readonly googleService: GoogleService,
     ) { }
+
+    @Post('google')
+    @ApiOperation({ summary: 'Create new session via Google' })
+    @ApiCreatedResponse({ type: () => SessionOutput })
+    @ValidateSchema(LoginGoogleSchema)
+    async createSessionWithGoogle(
+        @SequelizeTransaction() transaction: Transaction,
+        @Body() body: LoginGoogleInput
+    ): Promise<SessionDto> {
+        const userData = await this.googleService.verifyToken(body.token);
+        let user = await this.usersService.findUserByEmail(userData.email, transaction);
+        if (!user) user = await this.usersService.createWithGoogle(userData, transaction);
+        const { accessToken, refreshToken } = this.authService.generateTokens(user.id);
+        return new SessionDto(accessToken, refreshToken);
+    }
 
     @Post('registration')
     @ApiOperation({ summary: 'Registration' })

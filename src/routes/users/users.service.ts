@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { User } from 'src/database/models/user.model';
+import { UserInfo } from 'src/services/google/google.service';
 import { UserInput } from './api/user.input';
 
 @Injectable()
@@ -29,6 +30,10 @@ export class UsersService {
 
     async create(userData: { email: string, password: string; }, transaction?: Transaction): Promise<User> {
         return await this.userModel.create(userData, { transaction });
+    }
+
+    async createWithGoogle(userData: UserInfo, transaction?: Transaction): Promise<User> {
+        return await this.userModel.create({ email: userData.email, name: userData.name }, { transaction });
     }
 
     async findUserById(id: ID, transaction?: Transaction): Promise<User> {
