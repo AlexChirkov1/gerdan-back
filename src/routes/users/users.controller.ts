@@ -47,10 +47,8 @@ export class UsersController {
         @UserSession() session: UserSessionData,
         @Body() body: UserInput,
     ): Promise<UserDetailsDto> {
-        let existedUser = await this.usersService.findUserByEmail(body.email, transaction);
+        const existedUser = await this.usersService.findUserByEmail(body.email, transaction);
         if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
-        existedUser = await this.usersService.findUserByUsername(body.username, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.username_already_exist);
 
         let user = await this.usersService.findUserById(session.userId, transaction);
         await this.usersService.update(user, body, transaction);
