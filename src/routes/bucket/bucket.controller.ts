@@ -12,7 +12,7 @@ export class BucketController {
     constructor(private readonly bucketService: BucketService) { }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get file' })
+    @ApiOperation({ summary: 'Get file', deprecated: true })
     async get(
         @Param('id', FileIdPipe) id: string,
         @Res() res: Response
