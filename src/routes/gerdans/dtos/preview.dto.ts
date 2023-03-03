@@ -10,6 +10,6 @@ export class PreviewDto {
     url: string;
     constructor(file: Partial<File>) {
         this.id = base64(file.id);
-        this.url = process.env.EXPOSE_URL + 'api/bucket/' + this.id + '.' + getFileType(file.type);
+        this.url = process.env.STORAGE_URL + '/storage/v1/object/public/files/' + file.userId + '/' + file.name + '.' + getFileType(file.type);
     }
 }

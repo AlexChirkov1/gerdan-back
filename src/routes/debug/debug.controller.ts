@@ -1,14 +1,18 @@
-import { Controller, Get, NotImplementedException } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { SupabaseService } from 'src/services/supabase/supabase.service';
+import { Controller, Get, NotImplementedException, UseInterceptors } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Transaction } from 'sequelize';
+import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
+import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
 
 @ApiTags('debug')
 @Controller('debug')
 export class DebugController {
-    constructor(private readonly supabaseService: SupabaseService) { }
-
     @Get()
-    async test() {
+    @ApiOperation({ summary: 'API for testing some nonsense' })
+    @UseInterceptors(TransactionInterceptor)
+    async test(
+        @SequelizeTransaction() transaction: Transaction,
+    ) {
         throw new NotImplementedException();
     }
 }
