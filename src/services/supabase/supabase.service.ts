@@ -10,7 +10,6 @@ export class SupabaseService {
     constructor(private readonly configService: ConfigService) {
         const STORAGE_URL = this.configService.get('STORAGE_URL');
         const SERVICE_KEY = this.configService.get('SERVICE_KEY');
-
         this.supabaseClient = createClient(STORAGE_URL, SERVICE_KEY);
     }
 
@@ -20,5 +19,9 @@ export class SupabaseService {
 
     async createFileBucket() {
         return await this.supabaseClient.storage.createBucket(FILE_BUCKET, { public: true });
+    }
+
+    async addFileToStorage(file: Buffer, userId: ID, name: string) {
+        return await this.supabaseClient.storage.from(FILE_BUCKET).upload(`${userId}/${name}`, file);
     }
 }

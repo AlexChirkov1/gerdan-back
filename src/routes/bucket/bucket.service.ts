@@ -28,4 +28,12 @@ export class BucketService {
         const file = await this.fileModel.findByPk(fileId, { transaction });
         await file.destroy({ transaction });
     }
+
+    async countFiles(transaction?: Transaction): Promise<number> {
+        return await this.fileModel.count({ transaction });
+    }
+
+    async getFilesList(limit: number, offset: number, transaction?: Transaction): Promise<File[]> {
+        return await this.fileModel.scope([{ method: ['offsetPagination', limit, offset] }]).findAll({ transaction });
+    }
 }
