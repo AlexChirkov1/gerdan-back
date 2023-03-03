@@ -55,10 +55,8 @@ export class AuthController {
         @SequelizeTransaction() transaction: Transaction,
         @Body() body: RegistrationInput
     ): Promise<NewUserDto> {
-        let existedUser = await this.usersService.findUserByEmail(body.email, transaction);
+        const existedUser = await this.usersService.findUserByEmail(body.email, transaction);
         if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
-        existedUser = await this.usersService.findUserByUsername(body.username, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.username_already_exist);
         const user = await this.usersService.create(body, transaction);
         return new NewUserDto(user);
     }
