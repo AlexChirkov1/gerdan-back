@@ -3,6 +3,7 @@ import { base10 } from './base10';
 
 export const commonScopes: any = {
     byId: (id) => ({ where: { id } }),
+    offsetPagination: (limit, offset) => ({ limit, offset, order: [['id', 'asc']] }),
     pagination: (limit, id) => {
         const scope = { limit: Number(limit), order: [['id', 'desc']] };
         if (id) Object.assign(scope, { where: { id: { [Op.lte]: base10(id) } } });
