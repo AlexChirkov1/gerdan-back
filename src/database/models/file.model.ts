@@ -28,4 +28,16 @@ export class File extends Model {
         allowNull: false,
     })
     type: number;
+
+    @Column({
+        type: DataType.UUID,
+        allowNull: false,
+    })
+    name: string;
+
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    userId: ID;
 }
