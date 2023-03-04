@@ -14,26 +14,20 @@ export class UsersService {
 
     async update(user: User, userInput: UserInput, transaction?: Transaction): Promise<void> {
         if (userInput?.password) await user.update({ password: userInput.password }, { transaction });
-        if (userInput?.firstName) await user.update({ firstName: userInput.firstName }, { transaction });
-        if (userInput?.lastName) await user.update({ lastName: userInput.lastName }, { transaction });
         if (userInput?.username) await user.update({ username: userInput.username }, { transaction });
-        if (userInput?.email) await user.update({ email: userInput.email }, { transaction });
-    }
-
-    async findUserByUsername(username: string, transaction?: Transaction): Promise<User | null> {
-        return await this.userModel.findOne({ where: { username }, transaction });
+        if (userInput?.email) await user.update({ email: userInput.email.toLowerCase() }, { transaction });
     }
 
     async findUserByEmail(email: string, transaction?: Transaction): Promise<User | null> {
-        return await this.userModel.findOne({ where: { email }, transaction });
+        return await this.userModel.findOne({ where: { email: email.toLowerCase() }, transaction });
     }
 
     async create(userData: { email: string, password: string; }, transaction?: Transaction): Promise<User> {
-        return await this.userModel.create(userData, { transaction });
+        return await this.userModel.create({ ...userData, email: userData.email.toLowerCase() }, { transaction });
     }
 
     async createWithGoogle(userData: UserInfo, transaction?: Transaction): Promise<User> {
-        return await this.userModel.create({ email: userData.email, name: userData.name }, { transaction });
+        return await this.userModel.create({ email: userData.email.toLowerCase(), name: userData.name }, { transaction });
     }
 
     async findUserById(id: ID, transaction?: Transaction): Promise<User> {
