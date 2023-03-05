@@ -116,7 +116,7 @@ export class GerdansController {
 
     @Post()
     @Auth()
-    @ApiOperation({ summary: 'Create a new gerdan' })
+    @ApiOperation({ summary: 'Create a new gerdan', deprecated: true })
     @ApiCreatedResponse({ type: () => GerdanOutput })
     @ValidateSchema(GerdanSchema)
     async createGerdan(
@@ -135,7 +135,7 @@ export class GerdansController {
 
     @Put(':id')
     @Auth()
-    @ApiOperation({ summary: 'Edit gerdan' })
+    @ApiOperation({ summary: 'Edit gerdan', deprecated: true })
     @ApiOkResponse({ type: () => GerdanOutput })
     @ValidateSchema(GerdanSchema)
     async updateGerdan(
@@ -156,7 +156,7 @@ export class GerdansController {
 
     @Delete(':id')
     @Auth()
-    @ApiOperation({ summary: 'Delete gerdan' })
+    @ApiOperation({ summary: 'Delete gerdan', deprecated: true })
     @HttpCode(204)
     async deleteGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -165,6 +165,7 @@ export class GerdansController {
     ) {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
         if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
+        // TODO: Destroy file in supabase storage
         if (existedGerdan?.previewId) await this.bucketService.destroyFile(existedGerdan.previewId, transaction);
         await existedGerdan.destroy({ transaction });
     }
