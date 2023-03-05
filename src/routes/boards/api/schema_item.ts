@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-class SchemaItem {
+export class SchemaItem {
     @ApiProperty()
     x: number;
     @ApiProperty()
@@ -8,12 +8,7 @@ class SchemaItem {
     @ApiProperty()
     filled: boolean;
     @ApiProperty({ required: false })
-    colorFill?: string;
+    color?: string;
     @ApiProperty({ required: false })
     number?: number;
-}
-
-export class Schema {
-    @ApiProperty({ type: SchemaItem, isArray: true })
-    schema: SchemaItem[];
 }

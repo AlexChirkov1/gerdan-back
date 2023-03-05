@@ -38,7 +38,7 @@ export class GerdansController {
 
     @Get()
     @Auth()
-    @ApiOperation({ summary: 'Get gerdans' })
+    @ApiOperation({ summary: 'Get gerdans', deprecated: true })
     @ApiOkResponse({ type: () => GerdansOutput })
     @ValidateSchema(CursorPaginationSchema)
     async getGerdans(
@@ -59,7 +59,7 @@ export class GerdansController {
 
     @Get(':id')
     @Auth()
-    @ApiOperation({ summary: 'View gerdan schema' })
+    @ApiOperation({ summary: 'View gerdan schema', deprecated: true })
     @ApiOkResponse({ type: () => GerdanOutput })
     async getGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -75,7 +75,7 @@ export class GerdansController {
 
     @Get(':id/pdf')
     @Auth()
-    @ApiOperation({ summary: 'Get gerdan in PDF format' })
+    @ApiOperation({ summary: 'Get gerdan in PDF format', deprecated: true })
     @ValidateSchema(PDFOptionsSchema)
     async getPDF(
         @SequelizeTransaction() transaction: Transaction,

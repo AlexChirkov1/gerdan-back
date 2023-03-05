@@ -10,7 +10,12 @@ type BoardMetadata = {
     backgroundColor?: string;
 };
 
-
+type BoardSchemaData = {
+    type: number;
+    backgroundColor?: string;
+    schema: string;
+    colormap: string;
+};
 
 @Injectable()
 export class BoardsService {
@@ -21,5 +26,20 @@ export class BoardsService {
 
     async createBoard(metadata: BoardMetadata, transaction: Transaction): Promise<Board> {
         return await this.boardModel.create(metadata, { transaction });
+    }
+
+    async getBoardByIdForUser(id: ID, userId: ID, transaction?: Transaction): Promise<Board> {
+        return await this.boardModel.findOne({ where: { id, userId }, transaction });
+    }
+
+    async updateSchema(id: ID, boardSchema: BoardSchemaData, transaction?: Transaction): Promise<void> {
+        await this.boardModel.update(boardSchema, { where: { id }, transaction });
+    }
+
+    async getDetails(id: ID, transaction?: Transaction): Promise<Board> {
+        return await this.boardModel.scope([
+            'withAuthor',
+            'withPreview'
+        ]).findByPk(id, { transaction });
     }
 }

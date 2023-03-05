@@ -28,7 +28,7 @@ export const ERROR_MESSAGES = {
         }
     },
     GERDANS: {
-        code: 200, 
+        code: 200,
         not_found: {
             message: 'Gerdan not found',
             code: 201
@@ -40,5 +40,12 @@ export const ERROR_MESSAGES = {
             message: 'File not found',
             code: 301
         }
+    },
+    BOARDS: {
+        code: 400,
+        not_found: {
+            message: 'Board not found',
+            code: 401,
+        }
     }
-}
+} as const;

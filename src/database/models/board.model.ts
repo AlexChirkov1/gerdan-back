@@ -12,10 +12,10 @@ export type SchemaItem = {
     number?: number;
 };
 
-export type Colormap = {
+export type ColormapItem = {
     color: string;
     number: number;
-}
+};
 
 export enum BoardTypeEnum {
     grid = 1,
@@ -61,7 +61,7 @@ export class Board extends BaseModel {
     schema: SchemaItem[];
 
     @Column(DataType.TEXT)
-    colormap: Colormap[];
+    colormap: ColormapItem[];
 
     @BelongsTo(() => User)
     author: User;
