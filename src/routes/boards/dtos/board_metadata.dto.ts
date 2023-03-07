@@ -1,4 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { BaseDto } from 'src/common/base.dto';
 import { Board } from 'src/database/models/board.model';

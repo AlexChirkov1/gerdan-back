@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
@@ -16,17 +15,13 @@ import { createGerdanPreview, generateGerdanPDF } from 'src/services/gerdan/gerd
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { BucketService } from '../bucket/bucket.service';
 import { UsersService } from '../users/users.service';
-import { GerdanInput } from './api/gerdan.input';
-import { GerdanOutput } from './api/gerdan.output';
-import { GerdansOutput } from './api/gerdans.output';
-import { PDFOptionsInput } from './api/pdf_options.input';
 import { GerdanDto } from './dtos/gerdan.dto';
 import { GerdansDto } from './dtos/gerdans.dto';
+import { GerdanInput, PDFOptionsInput } from './dtos/input_types';
 import { GerdansService } from './gerdans.service';
 import { GerdanSchema } from './schemas/gerdan.schema';
 import { PDFOptionsSchema } from './schemas/pdf_options.schema';
 
-@ApiTags('gerdans')
 @Controller('gerdans')
 @UseInterceptors(TransactionInterceptor)
 export class GerdansController {
@@ -38,8 +33,6 @@ export class GerdansController {
 
     @Get()
     @Auth()
-    @ApiOperation({ summary: 'Get gerdans', deprecated: true })
-    @ApiOkResponse({ type: () => GerdansOutput })
     @ValidateSchema(CursorPaginationSchema)
     async getGerdans(
         @SequelizeTransaction() transaction: Transaction,
@@ -59,8 +52,6 @@ export class GerdansController {
 
     @Get(':id')
     @Auth()
-    @ApiOperation({ summary: 'View gerdan schema', deprecated: true })
-    @ApiOkResponse({ type: () => GerdanOutput })
     async getGerdan(
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
@@ -75,7 +66,6 @@ export class GerdansController {
 
     @Get(':id/pdf')
     @Auth()
-    @ApiOperation({ summary: 'Get gerdan in PDF format', deprecated: true })
     @ValidateSchema(PDFOptionsSchema)
     async getPDF(
         @SequelizeTransaction() transaction: Transaction,
@@ -116,8 +106,6 @@ export class GerdansController {
 
     @Post()
     @Auth()
-    @ApiOperation({ summary: 'Create a new gerdan', deprecated: true })
-    @ApiCreatedResponse({ type: () => GerdanOutput })
     @ValidateSchema(GerdanSchema)
     async createGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -135,8 +123,6 @@ export class GerdansController {
 
     @Put(':id')
     @Auth()
-    @ApiOperation({ summary: 'Edit gerdan', deprecated: true })
-    @ApiOkResponse({ type: () => GerdanOutput })
     @ValidateSchema(GerdanSchema)
     async updateGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -156,7 +142,6 @@ export class GerdansController {
 
     @Delete(':id')
     @Auth()
-    @ApiOperation({ summary: 'Delete gerdan', deprecated: true })
     @HttpCode(204)
     async deleteGerdan(
         @SequelizeTransaction() transaction: Transaction,

@@ -1,5 +1,4 @@
 import { Body, Controller, Param, Post, Put, UseInterceptors } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
@@ -10,17 +9,13 @@ import { TransactionInterceptor } from 'src/database/common/transaction.intercep
 import { BoardTypeEnum } from 'src/database/models/board.model';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
-import { BoardMetadataInput } from './api/board_metadata.input';
-import { BoardMetadataOutput } from './api/board_metadata.output';
-import { BoardSchemaInput } from './api/board_schema.input';
-import { BoardSchemaOutput } from './api/board_schema.output';
 import { BoardsService } from './boards.service';
 import { BoardMetadataDto } from './dtos/board_metadata.dto';
 import { BoardSchemaDto } from './dtos/board_schema.dto';
+import { BoardMetadataInput, BoardSchemaInput } from './dtos/input_types';
 import { BoardSchema } from './schemas/board.schema';
 import { BoardMetadataSchema } from './schemas/board_metadata.schema';
 
-@ApiTags('boards')
 @Controller('boards')
 @UseInterceptors(TransactionInterceptor)
 export class BoardsController {
@@ -28,8 +23,6 @@ export class BoardsController {
 
     @Post()
     @Auth()
-    @ApiOperation({ summary: 'Create a new board' })
-    @ApiCreatedResponse({ type: () => BoardMetadataOutput })
     @ValidateSchema(BoardMetadataSchema)
     async createNewBoard(
         @SequelizeTransaction() transaction: Transaction,
@@ -48,8 +41,6 @@ export class BoardsController {
 
     @Put(':id')
     @Auth()
-    @ApiOperation({ summary: 'Update board schema' })
-    @ApiCreatedResponse({ type: () => BoardSchemaOutput })
     @ValidateSchema(BoardSchema)
     async updateSchema(
         @SequelizeTransaction() transaction: Transaction,

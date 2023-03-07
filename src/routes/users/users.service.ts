@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { User } from 'src/database/models/user.model';
 import { UserInfo } from 'src/services/google/google.service';
-import { UserInput } from './api/user.input';
+import { UserInput } from './dtos/input_types';
 
 @Injectable()
 export class UsersService {
