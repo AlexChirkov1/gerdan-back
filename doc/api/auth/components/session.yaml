@@ -1,0 +1,8 @@
+type: object
+properties:
+  accessToken:
+    type: string
+    description: Використовуйте цей токен для доступу до API серверу
+  refreshToken:
+    type: string
+    description: Використайте цей токен щоб отримати нову пару токенів в ***POST api/auth/refresh***

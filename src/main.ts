@@ -4,6 +4,8 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json } from 'body-parser';
+import { join } from 'path';
+import { cwd } from 'process';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './errors/http_exception.filter';
@@ -18,6 +20,7 @@ async function bootstrap() {
 
     app.use(json({ limit: '10mb' }));
 
+    app.useStaticAssets(join(cwd(), 'doc'));
     app.setGlobalPrefix('api');
     app.useGlobalFilters(new HttpExceptionFilter());
     app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector), {
@@ -36,6 +39,6 @@ async function bootstrap() {
         SwaggerModule.setup('swagger', app, document);
     }
 
-    await app.listen(process.env.PORT ||  port);
+    await app.listen(process.env.PORT || port);
 }
 bootstrap();

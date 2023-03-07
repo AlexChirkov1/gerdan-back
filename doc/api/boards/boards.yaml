@@ -1,0 +1,57 @@
+post:
+  operationId: create_new_board
+  security:
+    - bearer:
+        - "read:all"
+        - "write:all"
+  tags:
+    - boards
+  summary: Створити нову дошку
+  description: Створити нову дошку з пустою схемою для бісеру
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            type:
+              type: string
+              enum:
+                - grid
+                - loom
+                - brick
+                - peyote
+            backgroundColor:
+              type: string
+              format: hex
+              description: Колір в шістнадцятковому форматі та гештеґом
+              pattern: /^#[0-9A-Fa-f]{6}/
+              example: "#ffffff"
+              minLength: 7
+              maxLength: 7
+          required:
+            - name
+            - type
+            - backgroundColor
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\board_metadata.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+      
