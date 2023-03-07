@@ -4,7 +4,7 @@ import { commonScopes } from '../common/common.scopes';
 import { File } from './file.model';
 import { User } from './user.model';
 
-export type SchemaItem = {
+type SchemaItem = {
     x: number;
     y: number;
     filled: boolean;
@@ -12,10 +12,14 @@ export type SchemaItem = {
     number?: number;
 };
 
-export type ColormapItem = {
+export type Schema = SchemaItem[][];
+
+type ColormapItem = {
     color: string;
     number: number;
 };
+
+export type Colormap = ColormapItem[];
 
 export enum BoardTypeEnum {
     grid = 1,
@@ -58,10 +62,10 @@ export class Board extends BaseModel {
     backgroundColor: string;
 
     @Column(DataType.TEXT)
-    schema: SchemaItem[];
+    schema: string;
 
     @Column(DataType.TEXT)
-    colormap: ColormapItem[];
+    colormap: string;
 
     @BelongsTo(() => User)
     author: User;

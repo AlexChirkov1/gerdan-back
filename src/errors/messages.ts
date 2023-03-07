@@ -1,7 +1,7 @@
 export type ErrorMessage = {
     message: string;
     code: number;
-}
+};
 
 export const ERROR_MESSAGES = {
     AUTH: {
@@ -12,7 +12,7 @@ export const ERROR_MESSAGES = {
         },
         username_already_exist: {
             message: 'User witch such username already exist',
-            code: 102
+            code: 102 // TODO: Deprecated
         },
         invalid_credentials: {
             message: 'User with such email and password was not found',

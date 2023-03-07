@@ -1,7 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
+import { UnprocessableEntityException } from 'src/errors/handlers/unprocessable_entity_exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { PasswordHelper } from 'src/utils/password.helper';
 
