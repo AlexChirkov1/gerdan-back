@@ -1,11 +1,10 @@
 import { Expose } from 'class-transformer';
 import { BaseDto } from 'src/common/base.dto';
-import { JSONType } from 'src/common/json_type.decorator';
-import { Board } from 'src/database/models/board.model';
+import { Project } from 'src/database/models/project.model';
 // import { ColormapItem } from '../api/colormap_item';
 // import { SchemaItem } from '../api/schema_item';
 
-export class BoardSchemaDto extends BaseDto {
+export class ProjectSchemaDto extends BaseDto {
     @Expose()
     name: string;
     @Expose()
@@ -20,7 +19,7 @@ export class BoardSchemaDto extends BaseDto {
     // @JSONType()
     // colormap: ColormapItem[];
 
-    constructor(board: Partial<Board>) {
+    constructor(board: Partial<Project>) {
         super(board);
         Object.assign(this, board);
     }

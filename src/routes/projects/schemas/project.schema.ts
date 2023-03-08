@@ -1,10 +1,10 @@
 import * as Joi from 'joi';
 import { validationRules } from 'src/common/validations.rules';
-import { BoardTypeKeys } from '../resources/board_type_keys';
+import { ProjectTypeKeys } from '../resources/project_type_keys';
 
-export const BoardSchema = Joi.object({
+export const ProjectSchema = Joi.object({
     type: Joi.string()
-        .valid(...BoardTypeKeys)
+        .valid(...ProjectTypeKeys)
         .optional(),
     backgroundColor: Joi.string()
         .regex(validationRules.colorRegex)

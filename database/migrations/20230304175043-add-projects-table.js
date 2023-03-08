@@ -2,7 +2,7 @@
 
 module.exports = {
     async up(queryInterface, Sequelize) {
-        await queryInterface.createTable('Boards', {
+        await queryInterface.createTable('Projects', {
             id: {
                 type: Sequelize.DataTypes.INTEGER,
                 autoIncrement: true,
@@ -39,7 +39,7 @@ module.exports = {
             }
         });
 
-        await queryInterface.addConstraint('Boards', {
+        await queryInterface.addConstraint('Projects', {
             fields: ['previewId'],
             type: 'foreign key',
             name: 'preview_to_files',
@@ -53,6 +53,6 @@ module.exports = {
     },
 
     async down(queryInterface) {
-        await queryInterface.dropTable('Boards');
+        await queryInterface.dropTable('Projects');
     }
 };

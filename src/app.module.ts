@@ -4,7 +4,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import models from 'src/database/models';
 import { AuthModule } from './auth/auth.module';
 import { HealthcheckModule } from './healthcheck/healthcheck.module';
-import { BoardsModule } from './routes/boards/boards.module';
+import { ProjectsModule } from './routes/projects/projects.module';
 // import { InitModule } from './init/init.module';
 import { BucketModule } from './routes/bucket/bucket.module';
 import { DebugModule } from './routes/debug/debug.module';
@@ -33,7 +33,7 @@ const sequelizeLogger = new Logger('Sequelize');
         GerdansModule,
         UsersModule,
         BucketModule,
-        BoardsModule
+        ProjectsModule
     ],
 })
 export class AppModule { }

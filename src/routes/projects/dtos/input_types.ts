@@ -11,14 +11,14 @@ export type ColormapItem = {
     number: number;
 };
 
-export type BoardSchemaInput = {
+export type ProjectSchemaInput = {
     type: string;
     backgroundColor?: string;
     schema: SchemaItem[][];
     colormap: ColormapItem[];
 };
 
-export type BoardMetadataInput = {
+export type ProjectMetadataInput = {
     name: string;
     type: string;
     backgroundColor?: string;

@@ -1,14 +1,14 @@
 put:
-  operationId: update_board_schema
+  operationId: update_project_schema
   security:
     - bearer:
         - "read:all"
         - "write:all"
   tags:
-    - boards
+    - projects
   summary: Оновити схему
   description: |
-    Створити нову або оновити схему на дошці.
+    Створити нову або оновити схему в проєкті.
 
     В полі `schema` необхідно передати матрицю з оновленими пікселями. 
     Якщо піксель зафарбований він мусить мати параметр `filled: true` та поля `color` і `number`.
@@ -111,7 +111,7 @@ put:
           schema:
             type: object
             allOf:
-              - $ref: components\board_metadata.yaml
+              - $ref: components\project_metadata.yaml
     "401":
       description: Unauthorized
       content:
@@ -129,4 +129,4 @@ put:
             type: object
             allOf:
               - $ref: ..\..\errors\not_found_error.yaml
-              - $ref: ..\..\errors\board_not_found.yaml
+              - $ref: ..\..\errors\project_not_found.yaml

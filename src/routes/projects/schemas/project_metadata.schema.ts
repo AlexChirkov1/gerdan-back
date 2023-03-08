@@ -1,13 +1,13 @@
 import * as Joi from 'joi';
 import { validationRules } from 'src/common/validations.rules';
-import { BoardTypeKeys } from '../resources/board_type_keys';
+import { ProjectTypeKeys } from '../resources/project_type_keys';
 
-export const BoardMetadataSchema = Joi.object({
+export const ProjectMetadataSchema = Joi.object({
     name: Joi.string()
         .max(validationRules.stringMaxLength)
         .required(),
     type: Joi.string()
-        .valid(...BoardTypeKeys)
+        .valid(...ProjectTypeKeys)
         .required(),
     backgroundColor: Joi.string()
         .regex(validationRules.colorRegex)

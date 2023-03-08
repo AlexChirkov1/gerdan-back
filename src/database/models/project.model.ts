@@ -21,7 +21,7 @@ type ColormapItem = {
 
 export type Colormap = ColormapItem[];
 
-export enum BoardTypeEnum {
+export enum ProjectTypeEnum {
     grid = 1,
     loom = 2,
     brick = 3,
@@ -34,7 +34,7 @@ export enum BoardTypeEnum {
     byAuthorId: (userId) => ({ where: { userId } })
 }, commonScopes))
 @Table
-export class Board extends BaseModel {
+export class Project extends BaseModel {
     @ForeignKey(() => User)
     @Column({
         type: DataType.INTEGER,

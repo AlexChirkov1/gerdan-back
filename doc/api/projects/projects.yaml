@@ -1,13 +1,13 @@
 post:
-  operationId: create_new_board
+  operationId: create_new_project
   security:
     - bearer:
         - "read:all"
         - "write:all"
   tags:
-    - boards
-  summary: Створити нову дошку
-  description: Створити нову дошку з пустою схемою для бісеру
+    - projects
+  summary: Створити новий проєкт
+  description: Створити новий проєкт з пустою схемою для бісеру
   requestBody:
     content:
       "application/json":
@@ -44,7 +44,7 @@ post:
           schema:
             type: object
             allOf:
-              - $ref: components\board_metadata.yaml
+              - $ref: components\project_metadata.yaml
     "401":
       description: Unauthorized
       content:
@@ -54,4 +54,3 @@ post:
             allOf:
               - $ref: ..\..\errors\unauthorized_error.yaml
               - $ref: ..\..\errors\unauthorized.yaml
-      

@@ -20,10 +20,10 @@ paths:
     $ref: api/auth/refresh.yaml
   /users/me:
     $ref: api/users/me.yaml
-  /boards:
-    $ref: api/boards/boards.yaml
-  /boards/{id}:
-    $ref: api/boards/board.yaml
+  /projects:
+    $ref: api/projects/projects.yaml
+  /projects/{id}:
+    $ref: api/projects/project.yaml
 components:
   securitySchemes:
     bearer:

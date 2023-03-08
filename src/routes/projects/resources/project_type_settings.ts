@@ -1,23 +1,23 @@
-import { BoardTypeEnum } from 'src/database/models/board.model';
+import { ProjectTypeEnum } from 'src/database/models/project.model';
 
-export const BoardTypeSettings = {
+export const ProjectTypeSettings = {
     loom: {
-        name: BoardTypeEnum.loom,
+        name: ProjectTypeEnum.loom,
         boxWidth: 20,
         boxHeight: 30
     },
     grid: {
-        name: BoardTypeEnum.grid,
+        name: ProjectTypeEnum.grid,
         boxWidth: 25,
         boxHeight: 25
     },
     brick: {
-        name: BoardTypeEnum.brick,
+        name: ProjectTypeEnum.brick,
         boxWidth: 30,
         boxHeight: 20
     },
     peyote: {
-        name: BoardTypeEnum.peyote,
+        name: ProjectTypeEnum.peyote,
         boxWidth: 20,
         boxHeight: 30
     }

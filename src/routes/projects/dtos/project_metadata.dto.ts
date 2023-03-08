@@ -1,8 +1,8 @@
 import { Expose } from 'class-transformer';
 import { BaseDto } from 'src/common/base.dto';
-import { Board } from 'src/database/models/board.model';
+import { Project } from 'src/database/models/project.model';
 
-export class BoardMetadataDto extends BaseDto {
+export class ProjectMetadataDto extends BaseDto {
     @Expose()
     name: string;
     @Expose()
@@ -10,7 +10,7 @@ export class BoardMetadataDto extends BaseDto {
     @Expose()
     backgroundColor: string;
 
-    constructor(board: Partial<Board>) {
+    constructor(board: Partial<Project>) {
         super(board);
         Object.assign(this, board);
     }

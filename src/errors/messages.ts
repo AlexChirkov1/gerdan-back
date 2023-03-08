@@ -41,10 +41,10 @@ export const ERROR_MESSAGES = {
             code: 301
         }
     },
-    BOARDS: {
+    PROJECTS: {
         code: 400,
         not_found: {
-            message: 'Board not found',
+            message: 'Project not found',
             code: 401,
         }
     }
