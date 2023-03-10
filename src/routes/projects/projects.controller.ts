@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Put, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseInterceptors } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
@@ -9,9 +9,9 @@ import { TransactionInterceptor } from 'src/database/common/transaction.intercep
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
+import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
-import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectsService } from './projects.service';
 import { ProjectSchema } from './schemas/project.schema';
 import { ProjectMetadataSchema } from './schemas/project_metadata.schema';
@@ -56,9 +56,20 @@ export class ProjectsController {
             schema: JSON.stringify(body.schema),
             colormap: JSON.stringify(body.colormap),
         }, transaction);
-        // TODO: async create preview
-        // async save preview on bucket
         project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
+        return new ProjectSchemaDto(project);
+    }
+
+    @Get(':id')
+    @Auth()
+    @ValidateSchema(ProjectSchema)
+    async getProjectDetails(
+        @SequelizeTransaction() transaction: Transaction,
+        @UserSession() session: UserSessionData,
+        @Param('id', Base10Pipe) id: string,
+    ) {
+        const project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
+        if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
         return new ProjectSchemaDto(project);
     }
 }

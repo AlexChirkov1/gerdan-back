@@ -1,26 +1,26 @@
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 import { BaseDto } from 'src/common/base.dto';
-import { Project } from 'src/database/models/project.model';
-// import { ColormapItem } from '../api/colormap_item';
-// import { SchemaItem } from '../api/schema_item';
+import { JSONType } from 'src/common/json_type.decorator';
+import { Project, ProjectTypeEnum } from 'src/database/models/project.model';
+import { ColormapItem, SchemaItem } from './input_types';
 
 export class ProjectSchemaDto extends BaseDto {
     @Expose()
     name: string;
     @Expose()
+    @Transform(({ value }) => ProjectTypeEnum[value])
     type: string;
     @Expose()
     backgroundColor: string;
-    // TODO: fix
-    // @Expose()
-    // @JSONType()
-    // schema: SchemaItem[];
-    // @Expose()
-    // @JSONType()
-    // colormap: ColormapItem[];
+    @Expose()
+    @JSONType()
+    schema: SchemaItem[][];
+    @Expose()
+    @JSONType()
+    colormap: ColormapItem[];
 
-    constructor(board: Partial<Project>) {
-        super(board);
-        Object.assign(this, board);
+    constructor(project: Partial<Project>) {
+        super(project);
+        Object.assign(this, project);
     }
 }

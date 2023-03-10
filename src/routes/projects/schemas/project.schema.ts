@@ -12,25 +12,32 @@ export const ProjectSchema = Joi.object({
         .optional()
         .messages({ 'string.pattern.base': 'backgroundColor should be a valid hex color with hashtag' }),
     schema: Joi.array()
-        .items(Joi.object({
-            x: Joi.number()
-                .min(0)
-                .required(),
-            y: Joi.number()
-                .min(0)
-                .required(),
-            filled: Joi.boolean()
-                .required(),
-            color: Joi.string()
-                .regex(validationRules.colorRegex)
-                .length(7)
-                .optional()
-                .messages({ 'string.pattern.base': 'color should be a valid hex color with hashtag' }),
-            number: Joi.number()
-                .min(0)
-                .optional()
-        }))
-        .unique((prev, next) => prev.x === next.x && prev.y === next.y)
+        .items(
+            Joi.array()
+                .items(
+                    Joi.object({
+                        x: Joi.number()
+                            .min(0)
+                            .required(),
+                        y: Joi.number()
+                            .min(0)
+                            .required(),
+                        filled: Joi.boolean()
+                            .required(),
+                        color: Joi.string()
+                            .regex(validationRules.colorRegex)
+                            .length(7)
+                            .optional()
+                            .messages({ 'string.pattern.base': 'color should be a valid hex color with hashtag' }),
+                        number: Joi.number()
+                            .min(0)
+                            .optional()
+                    })
+                )
+                .unique((prev, next) => prev.x === next.x && prev.y === next.y)
+                .min(1)
+                .required()
+        )
         .min(1)
         .required(),
     colormap: Joi.array()
@@ -39,7 +46,7 @@ export const ProjectSchema = Joi.object({
                 .string()
                 .regex(validationRules.colorRegex)
                 .length(7)
-                .valid(Joi.ref('/schema', { in: true, adjust: (nodes) => nodes.map(node => node.color) }))
+                .valid(Joi.ref('/schema', { in: true, adjust: (nodes) => nodes.map(node => node.map(innerNode => innerNode.color)).flat() }))
                 .required()
                 .messages({
                     'string.pattern.base': 'color should be a valid hex color with hashtag',
@@ -48,7 +55,7 @@ export const ProjectSchema = Joi.object({
             number: Joi
                 .number()
                 .min(0)
-                .valid(Joi.ref('/schema', { in: true, adjust: (nodes) => nodes.map(node => node.number) }))
+                .valid(Joi.ref('/schema', { in: true, adjust: (nodes) => nodes.map(node => node.map(innerNode => innerNode.number)).flat() }))
                 .required()
                 .messages({
                     'any.only': 'number in colormap must exist in schema'

@@ -1,24 +1,25 @@
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 
+export type ProjectTypeSetting = {
+    width: number,
+    height: number
+}
+
 export const ProjectTypeSettings = {
-    loom: {
-        name: ProjectTypeEnum.loom,
-        boxWidth: 20,
-        boxHeight: 30
+    [ProjectTypeEnum.loom]: {
+        width: 20,
+        height: 30
     },
-    grid: {
-        name: ProjectTypeEnum.grid,
-        boxWidth: 25,
-        boxHeight: 25
+    [ProjectTypeEnum.grid]: {
+        width: 25,
+        height: 25
     },
-    brick: {
-        name: ProjectTypeEnum.brick,
-        boxWidth: 30,
-        boxHeight: 20
+    [ProjectTypeEnum.brick]: {
+        width: 30,
+        height: 20
     },
-    peyote: {
-        name: ProjectTypeEnum.peyote,
-        boxWidth: 20,
-        boxHeight: 30
+    [ProjectTypeEnum.peyote]: {
+        width: 20,
+        height: 30
     }
 } as const;
