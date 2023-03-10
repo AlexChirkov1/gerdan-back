@@ -9,7 +9,13 @@ tags:
     description: Точки входу сервера для реєстрації та авторизації користувачів
   - name: users
     description: API керування зареєстрованими користувачами
+  - name: projects
+    description: API для керування проєктами та схемами
+  - name: healthcheck
+    description: API для перевірки роботи серверу
 paths:
+  /healthcheck/ping:
+    $ref: api/healthcheck/ping.yaml
   /auth/google:
     $ref: api/auth/google.yaml
   /auth/registration:
