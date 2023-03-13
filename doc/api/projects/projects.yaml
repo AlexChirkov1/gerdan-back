@@ -1,3 +1,46 @@
+get:
+  operationId: get_projects_list
+  security:
+    - bearer:
+        - "read:all"
+  tags:
+    - projects
+  summary: Список проєктів
+  description: Отримати список проєктів користувача
+  parameters:
+    - name: id
+      in: query
+      schema:
+        type: string
+        example: MjA
+    - name: records
+      in: query
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1000
+        default: 20
+      required: true
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: array
+            items:
+              type: object
+              allOf:
+                - $ref: components\project_metadata.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
 post:
   operationId: create_new_project
   security:
@@ -37,8 +80,8 @@ post:
             - type
             - backgroundColor
   responses:
-    "200":
-      description: Success
+    "201":
+      description: Created
       content:
         "application/json":
           schema:

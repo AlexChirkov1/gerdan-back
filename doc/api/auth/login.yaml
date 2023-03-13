@@ -31,7 +31,7 @@ post:
             - password
   responses:
     "201":
-      description: Success
+      description: Created
       content:
         "application/json":
           schema:

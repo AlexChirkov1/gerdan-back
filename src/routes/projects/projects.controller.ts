@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
@@ -32,11 +32,10 @@ export class ProjectsController {
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
         @Query() query: CursorPaginationInput
-    ): Promise<ProjectListDto> {
+    ) {
         let projects = [];
         let cursors = {};
         const totalCount = await this.projectsService.countProjectsForUser(session.userId, transaction);
-        console.log(query);
         if (totalCount) {
             const records = query.records ?? validationRules.defaultPagination;
             projects = await this.projectsService.getProjectsForUser(records, session.userId, query.id, transaction);
@@ -53,7 +52,7 @@ export class ProjectsController {
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
         @Body() body: ProjectMetadataInput,
-    ): Promise<ProjectMetadataDto> {
+    ) {
         const project = await this.projectsService.createProject({
             name: body.name,
             type: ProjectTypeEnum[body.type],
@@ -96,5 +95,22 @@ export class ProjectsController {
         const project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
         return new ProjectSchemaDto(project);
+    }
+
+    @Delete(':id')
+    @Auth()
+    @HttpCode(204)
+    async deleteProject(
+        @SequelizeTransaction() transaction: Transaction,
+        @UserSession() session: UserSessionData,
+        @Param('id', Base10Pipe) id: string,
+    ) {
+        let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
+        if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
+        project = await this.projectsService.getDetails(id, transaction);
+        if (project?.previewId) {
+            // TODO: destroying files
+        }
+        await project.destroy({ transaction });
     }
 }
