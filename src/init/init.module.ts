@@ -5,15 +5,13 @@ import { getFileType } from 'src/database/file_types';
 import { File } from 'src/database/models/file.model';
 import { BucketService } from 'src/routes/bucket/bucket.service';
 import { SupabaseService } from 'src/services/supabase/supabase.service';
-import { InitService } from './init.service';
 
 @Module({
     imports: [SequelizeModule.forFeature([File])],
-    providers: [InitService, SupabaseService, BucketService]
+    providers: [SupabaseService, BucketService]
 })
 export class InitModule implements OnModuleInit {
     constructor(
-        private readonly initService: InitService,
         private readonly bucketService: BucketService,
         private readonly supabaseService: SupabaseService,
         @InjectConnection()
@@ -21,7 +19,7 @@ export class InitModule implements OnModuleInit {
     ) { }
 
     async onModuleInit(): Promise<void> {
-        await this.initService.createBucket();
+        await this.supabaseService.createBucket();
 
         await this.sequelize.transaction(async (transaction) => {
             const totalCount = await this.bucketService.countFiles(transaction);

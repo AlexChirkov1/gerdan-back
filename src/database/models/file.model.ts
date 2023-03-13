@@ -19,9 +19,10 @@ export class File extends Model {
     @CreatedAt
     createdAt: Date;
 
+    // TODO: deprecated
     @Column({
         type: DataType.BLOB,
-        allowNull: false,
+        allowNull: true,
     })
     blob: Buffer;
 

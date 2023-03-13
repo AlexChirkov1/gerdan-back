@@ -9,9 +9,11 @@ import { CursorPaginationSchema } from 'src/common/cursor_pagination.schema';
 import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
+import { getFileType } from 'src/database/file_types';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { createGerdanPreview, generateGerdanPDF } from 'src/services/gerdan/gerdan';
+import { SupabaseService } from 'src/services/supabase/supabase.service';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { BucketService } from '../bucket/bucket.service';
 import { UsersService } from '../users/users.service';
@@ -29,6 +31,7 @@ export class GerdansController {
         private readonly gerdansService: GerdansService,
         private readonly usersService: UsersService,
         private readonly bucketService: BucketService,
+        private readonly supabaseService: SupabaseService,
     ) { }
 
     @Get()
@@ -115,8 +118,9 @@ export class GerdansController {
         const newGerdan = await this.gerdansService.create(body, session.userId, transaction);
         const gerdan = await this.gerdansService.getDetails(newGerdan.id, transaction);
         const preview = createGerdanPreview(gerdan);
-        const file = await this.bucketService.saveFile(preview, 'jpg', transaction);
+        const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
         await gerdan.update({ previewId: file.id }, { transaction });
+        await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
 
         return new GerdanDto(gerdan);
     }
@@ -135,7 +139,7 @@ export class GerdansController {
         await this.gerdansService.update(existedGerdan, body, transaction);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
         const preview = createGerdanPreview(gerdan);
-        await this.bucketService.updateFile(gerdan.previewId, preview, transaction);
+        await this.supabaseService.updateFileInStorage(preview, session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
 
         return new GerdanDto(gerdan);
     }
@@ -150,8 +154,11 @@ export class GerdansController {
     ) {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
         if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
-        // TODO: Destroy file in supabase storage
-        if (existedGerdan?.previewId) await this.bucketService.destroyFile(existedGerdan.previewId, transaction);
-        await existedGerdan.destroy({ transaction });
+        const gerdan = await this.gerdansService.getDetails(id, transaction);
+        if (gerdan?.previewId) {
+            await this.supabaseService.destroyFileInStorage(session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
+            await this.bucketService.destroyFile(gerdan.previewId, transaction);
+        }
+        await gerdan.destroy({ transaction });
     }
 }

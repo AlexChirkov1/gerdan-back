@@ -13,6 +13,11 @@ export class SupabaseService {
         this.supabaseClient = createClient(STORAGE_URL, SERVICE_KEY);
     }
 
+    async createBucket() {
+        const bucket = await this.getFileBucketDetails();
+        if (bucket.error) await this.createFileBucket();
+    }
+
     async getFileBucketDetails() {
         return await this.supabaseClient.storage.getBucket(FILE_BUCKET);
     }
@@ -23,5 +28,13 @@ export class SupabaseService {
 
     async addFileToStorage(file: Buffer, userId: ID, name: string) {
         return await this.supabaseClient.storage.from(FILE_BUCKET).upload(`${userId}/${name}`, file);
+    }
+
+    async updateFileInStorage(file: Buffer, userId: ID, name: string) {
+        await this.supabaseClient.storage.from(FILE_BUCKET).update(`${userId}/${name}`, file);
+    }
+
+    async destroyFileInStorage(userId: ID, name: string) {
+        await this.supabaseClient.storage.from(FILE_BUCKET).remove([`${userId}/${name}`]);
     }
 }

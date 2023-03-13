@@ -3,6 +3,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Gerdan } from 'src/database/models/gerdan.model';
 import { Pixel } from 'src/database/models/pixel.model';
 import { User } from 'src/database/models/user.model';
+import { SupabaseService } from 'src/services/supabase/supabase.service';
 import { BucketModule } from '../bucket/bucket.module';
 import { UsersService } from '../users/users.service';
 import { GerdansController } from './gerdans.controller';
@@ -14,6 +15,6 @@ import { GerdansService } from './gerdans.service';
         SequelizeModule.forFeature([Gerdan, Pixel, User])
     ],
     controllers: [GerdansController],
-    providers: [GerdansService, UsersService]
+    providers: [GerdansService, UsersService, SupabaseService]
 })
 export class GerdansModule { }
