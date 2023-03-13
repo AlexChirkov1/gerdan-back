@@ -1,0 +1,99 @@
+get:
+  operationId: get_projects_list
+  security:
+    - bearer:
+        - "read:all"
+  tags:
+    - projects
+  summary: Список проєктів
+  description: Отримати список проєктів користувача
+  parameters:
+    - name: id
+      in: query
+      schema:
+        type: string
+        example: MjA
+    - name: records
+      in: query
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1000
+        default: 20
+      required: true
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: array
+            items:
+              type: object
+              allOf:
+                - $ref: components\project_metadata.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+post:
+  operationId: create_new_project
+  security:
+    - bearer:
+        - "read:all"
+        - "write:all"
+  tags:
+    - projects
+  summary: Створити новий проєкт
+  description: Створити новий проєкт з пустою схемою для бісеру
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            type:
+              type: string
+              enum:
+                - grid
+                - loom
+                - brick
+                - peyote
+            backgroundColor:
+              type: string
+              format: hex
+              description: Колір в шістнадцятковому форматі та гештеґом
+              pattern: /^#[0-9A-Fa-f]{6}/
+              example: "#ffffff"
+              minLength: 7
+              maxLength: 7
+          required:
+            - name
+            - type
+            - backgroundColor
+  responses:
+    "201":
+      description: Created
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\project_metadata.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml

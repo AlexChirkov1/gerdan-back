@@ -1,0 +1,8 @@
+type: object
+properties:
+  message:
+    type: string
+    example: User witch such email already exist
+  messageCode:
+    type: integer
+    example: 101

@@ -1,0 +1,87 @@
+get:
+  operationId: get_my_profile
+  security:
+    - bearer:
+        - "read:all"
+  tags:
+    - users
+  summary: Профіль користувача
+  description: Отримати профіль авторизованого користувача
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\user_details.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+patch:
+  operationId: update_my_profile
+  security:
+    - bearer:
+        - "read:all"
+        - "write:all"
+  tags:
+    - users
+  summary: Оновити профіль
+  description: Оновити профіль авторизованого користувача
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              minLength: 3
+              maxLength: 255
+            email:
+              type: string
+              format: email
+              minLength: 4
+              maxLength: 255
+            password:
+              type: string
+              format: password
+              description: "Пароль повинен складатися з будь-якої послідовності цифр, великих та малих літер латинського алфавіту та спеціальних символів: `!` `@` `#` `$` `%` `^` `&` `*` `(` `)` `_` `-` `+` `=`"
+              pattern: /^[a-zA-Z0-9!@#$%^&*()_\-+=]{6,30}$/
+              minLength: 6
+              maxLength: 30
+              writeOnly: true
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\user_details.yaml
+    "400":
+      description: Bad request
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\bad_request_error.yaml
+              - $ref: ..\..\errors\email_already_exist.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml

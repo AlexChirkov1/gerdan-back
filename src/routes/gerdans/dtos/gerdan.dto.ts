@@ -5,7 +5,7 @@ import { ObjectType } from 'src/common/object_type.decorator';
 import { Gerdan } from 'src/database/models/gerdan.model';
 import { BaseUserDto } from 'src/routes/users/dtos/base-user.dto';
 import { PixelDto } from './pixel.dto';
-import { PreviewDto } from './preview.dto';
+import { PreviewDto } from '../../bucket/dtos/preview.dto';
 
 export class GerdanDto extends BaseDto {
     @Expose()

@@ -6,7 +6,6 @@ import { BaseModel } from '../common/base.model';
 export class User extends BaseModel {
     @Column({
         type: DataType.STRING,
-        unique: true,
         allowNull: false
     })
     username: string;

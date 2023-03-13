@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Patch, UseInterceptors } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
@@ -9,13 +8,11 @@ import { TransactionInterceptor } from 'src/database/common/transaction.intercep
 import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { GerdansService } from '../gerdans/gerdans.service';
-import { UserDetailsOutput } from './api/user-details.output';
-import { UserInput } from './api/user.input';
+import { UserInput } from './dtos/input_types';
 import { UserDetailsDto } from './dtos/user-details.dto';
 import { UserSchema } from './schemas/user.schema';
 import { UsersService } from './users.service';
 
-@ApiTags('users')
 @Controller('users')
 @UseInterceptors(TransactionInterceptor)
 export class UsersController {
@@ -26,8 +23,6 @@ export class UsersController {
 
     @Get('me')
     @Auth()
-    @ApiOperation({ summary: 'Get my profile' })
-    @ApiOkResponse({ type: () => UserDetailsOutput })
     async getMyProfile(
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData
@@ -39,18 +34,14 @@ export class UsersController {
 
     @Patch('me')
     @Auth()
-    @ApiOperation({ summary: 'Update my profile' })
-    @ApiOkResponse({ type: () => UserDetailsOutput })
     @ValidateSchema(UserSchema)
     async updateMyProfile(
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
         @Body() body: UserInput,
     ): Promise<UserDetailsDto> {
-        let existedUser = await this.usersService.findUserByEmail(body.email, transaction);
+        const existedUser = await this.usersService.findUserByEmail(body.email, transaction);
         if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
-        existedUser = await this.usersService.findUserByUsername(body.username, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.username_already_exist);
 
         let user = await this.usersService.findUserById(session.userId, transaction);
         await this.usersService.update(user, body, transaction);

@@ -3,8 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { Gerdan } from 'src/database/models/gerdan.model';
 import { Pixel } from 'src/database/models/pixel.model';
-import { GerdanInput } from './api/gerdan.input';
-import { PixelInput } from './api/pixel.input';
+import { GerdanInput, PixelInput } from './dtos/input_types';
 
 type ColorStatics = { index: number, color: string, count: number; }[];
 type Statistics = {

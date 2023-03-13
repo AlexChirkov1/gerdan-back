@@ -1,5 +1,4 @@
 import { Body, Controller, Post, Put, UseInterceptors } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Transaction } from 'sequelize';
 import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
@@ -8,13 +7,8 @@ import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { UsersService } from 'src/routes/users/users.service';
 import { GoogleService } from 'src/services/google/google.service';
-import { LoginInput } from './api/login_.input';
-import { LoginGoogleInput } from './api/login_google.input';
-import { RefreshSessionInput } from './api/refresh_session.input';
-import { RegistrationOutput } from './api/registration.output';
-import { RegistrationInput } from './api/registration_input';
-import { SessionOutput } from './api/session.output';
 import { AuthService, JWT_TYPES } from './auth.service';
+import { LoginGoogleInput, LoginInput, RefreshSessionInput, RegistrationInput } from './dtos/input_types';
 import { NewUserDto } from './dtos/new-user.dto';
 import { SessionDto } from './dtos/session.dto';
 import { LoginSchema } from './schemas/login.schema';
@@ -22,7 +16,6 @@ import { LoginGoogleSchema } from './schemas/login_google.schema';
 import { RefreshSessionSchema } from './schemas/refresh_session.schema';
 import { RegistrationSchema } from './schemas/registration.schema';
 
-@ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(TransactionInterceptor)
 export class AuthController {
@@ -33,8 +26,6 @@ export class AuthController {
     ) { }
 
     @Post('google')
-    @ApiOperation({ summary: 'Create new session via Google' })
-    @ApiCreatedResponse({ type: () => SessionOutput })
     @ValidateSchema(LoginGoogleSchema)
     async createSessionWithGoogle(
         @SequelizeTransaction() transaction: Transaction,
@@ -48,24 +39,18 @@ export class AuthController {
     }
 
     @Post('registration')
-    @ApiOperation({ summary: 'Registration' })
-    @ApiCreatedResponse({ type: () => RegistrationOutput })
     @ValidateSchema(RegistrationSchema)
     async registration(
         @SequelizeTransaction() transaction: Transaction,
         @Body() body: RegistrationInput
     ): Promise<NewUserDto> {
-        let existedUser = await this.usersService.findUserByEmail(body.email, transaction);
+        const existedUser = await this.usersService.findUserByEmail(body.email, transaction);
         if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
-        existedUser = await this.usersService.findUserByUsername(body.username, transaction);
-        if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.username_already_exist);
         const user = await this.usersService.create(body, transaction);
         return new NewUserDto(user);
     }
 
     @Post('login')
-    @ApiOperation({ summary: 'Login' })
-    @ApiCreatedResponse({ type: () => SessionOutput })
     @ValidateSchema(LoginSchema)
     async login(
         @SequelizeTransaction() transaction: Transaction,
@@ -79,8 +64,6 @@ export class AuthController {
     }
 
     @Put('refresh')
-    @ApiOperation({ summary: 'Refresh' })
-    @ApiCreatedResponse({ type: () => SessionOutput })
     @ValidateSchema(RefreshSessionSchema)
     async refresh(
         @SequelizeTransaction() transaction: Transaction,

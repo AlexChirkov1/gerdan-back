@@ -1,0 +1,44 @@
+openapi: 3.1.3
+info:
+  version: 2.0.0
+  title: Skeedy
+servers:
+  - url: https://localhost:4000/api
+tags:
+  - name: auth
+    description: Точки входу сервера для реєстрації та авторизації користувачів
+  - name: users
+    description: API керування зареєстрованими користувачами
+  - name: projects
+    description: API для керування проєктами та схемами
+  - name: healthcheck
+    description: API для перевірки роботи серверу
+paths:
+  /healthcheck/ping:
+    $ref: api/healthcheck/ping.yaml
+  /auth/google:
+    $ref: api/auth/google.yaml
+  /auth/registration:
+    $ref: api/auth/registration.yaml
+  /auth/login:
+    $ref: api/auth/login.yaml
+  /auth/refresh:
+    $ref: api/auth/refresh.yaml
+  /users/me:
+    $ref: api/users/me.yaml
+  /projects:
+    $ref: api/projects/projects.yaml
+  /projects/{id}:
+    $ref: api/projects/project.yaml
+components:
+  securitySchemes:
+    bearer:
+      name: Authorization
+      type: apiKey
+      in: header
+      description: Bearer JWT
+security:
+  - {}
+  - bearer:
+      - "write:all"
+      - "read:all"

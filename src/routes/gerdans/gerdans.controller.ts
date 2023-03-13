@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
@@ -10,23 +9,21 @@ import { CursorPaginationSchema } from 'src/common/cursor_pagination.schema';
 import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
+import { getFileType } from 'src/database/file_types';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { createGerdanPreview, generateGerdanPDF } from 'src/services/gerdan/gerdan';
+import { SupabaseService } from 'src/services/supabase/supabase.service';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { BucketService } from '../bucket/bucket.service';
 import { UsersService } from '../users/users.service';
-import { GerdanInput } from './api/gerdan.input';
-import { GerdanOutput } from './api/gerdan.output';
-import { GerdansOutput } from './api/gerdans.output';
-import { PDFOptionsInput } from './api/pdf_options.input';
 import { GerdanDto } from './dtos/gerdan.dto';
 import { GerdansDto } from './dtos/gerdans.dto';
+import { GerdanInput, PDFOptionsInput } from './dtos/input_types';
 import { GerdansService } from './gerdans.service';
 import { GerdanSchema } from './schemas/gerdan.schema';
 import { PDFOptionsSchema } from './schemas/pdf_options.schema';
 
-@ApiTags('gerdans')
 @Controller('gerdans')
 @UseInterceptors(TransactionInterceptor)
 export class GerdansController {
@@ -34,12 +31,11 @@ export class GerdansController {
         private readonly gerdansService: GerdansService,
         private readonly usersService: UsersService,
         private readonly bucketService: BucketService,
+        private readonly supabaseService: SupabaseService,
     ) { }
 
     @Get()
     @Auth()
-    @ApiOperation({ summary: 'Get gerdans' })
-    @ApiOkResponse({ type: () => GerdansOutput })
     @ValidateSchema(CursorPaginationSchema)
     async getGerdans(
         @SequelizeTransaction() transaction: Transaction,
@@ -59,8 +55,6 @@ export class GerdansController {
 
     @Get(':id')
     @Auth()
-    @ApiOperation({ summary: 'View gerdan schema' })
-    @ApiOkResponse({ type: () => GerdanOutput })
     async getGerdan(
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
@@ -75,7 +69,6 @@ export class GerdansController {
 
     @Get(':id/pdf')
     @Auth()
-    @ApiOperation({ summary: 'Get gerdan in PDF format' })
     @ValidateSchema(PDFOptionsSchema)
     async getPDF(
         @SequelizeTransaction() transaction: Transaction,
@@ -116,8 +109,6 @@ export class GerdansController {
 
     @Post()
     @Auth()
-    @ApiOperation({ summary: 'Create a new gerdan' })
-    @ApiCreatedResponse({ type: () => GerdanOutput })
     @ValidateSchema(GerdanSchema)
     async createGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -127,16 +118,15 @@ export class GerdansController {
         const newGerdan = await this.gerdansService.create(body, session.userId, transaction);
         const gerdan = await this.gerdansService.getDetails(newGerdan.id, transaction);
         const preview = createGerdanPreview(gerdan);
-        const file = await this.bucketService.saveFile(preview, 'jpg', transaction);
+        const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
         await gerdan.update({ previewId: file.id }, { transaction });
+        await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
 
         return new GerdanDto(gerdan);
     }
 
     @Put(':id')
     @Auth()
-    @ApiOperation({ summary: 'Edit gerdan' })
-    @ApiOkResponse({ type: () => GerdanOutput })
     @ValidateSchema(GerdanSchema)
     async updateGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -149,14 +139,13 @@ export class GerdansController {
         await this.gerdansService.update(existedGerdan, body, transaction);
         const gerdan = await this.gerdansService.getDetails(id, transaction);
         const preview = createGerdanPreview(gerdan);
-        await this.bucketService.updateFile(gerdan.previewId, preview, transaction);
+        await this.supabaseService.updateFileInStorage(preview, session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
 
         return new GerdanDto(gerdan);
     }
 
     @Delete(':id')
     @Auth()
-    @ApiOperation({ summary: 'Delete gerdan' })
     @HttpCode(204)
     async deleteGerdan(
         @SequelizeTransaction() transaction: Transaction,
@@ -165,7 +154,11 @@ export class GerdansController {
     ) {
         const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
         if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
-        if (existedGerdan?.previewId) await this.bucketService.destroyFile(existedGerdan.previewId, transaction);
-        await existedGerdan.destroy({ transaction });
+        const gerdan = await this.gerdansService.getDetails(id, transaction);
+        if (gerdan?.previewId) {
+            await this.supabaseService.destroyFileInStorage(session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
+            await this.bucketService.destroyFile(gerdan.previewId, transaction);
+        }
+        await gerdan.destroy({ transaction });
     }
 }

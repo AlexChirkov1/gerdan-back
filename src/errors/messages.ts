@@ -1,7 +1,7 @@
 export type ErrorMessage = {
     message: string;
     code: number;
-}
+};
 
 export const ERROR_MESSAGES = {
     AUTH: {
@@ -12,7 +12,7 @@ export const ERROR_MESSAGES = {
         },
         username_already_exist: {
             message: 'User witch such username already exist',
-            code: 102
+            code: 102 // TODO: Deprecated
         },
         invalid_credentials: {
             message: 'User with such email and password was not found',
@@ -28,7 +28,7 @@ export const ERROR_MESSAGES = {
         }
     },
     GERDANS: {
-        code: 200, 
+        code: 200,
         not_found: {
             message: 'Gerdan not found',
             code: 201
@@ -40,5 +40,12 @@ export const ERROR_MESSAGES = {
             message: 'File not found',
             code: 301
         }
+    },
+    PROJECTS: {
+        code: 400,
+        not_found: {
+            message: 'Project not found',
+            code: 401,
+        }
     }
-}
+} as const;

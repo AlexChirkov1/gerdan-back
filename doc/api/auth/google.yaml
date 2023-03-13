@@ -1,0 +1,40 @@
+post:
+  operationId: google
+  security:
+    - {}
+  tags:
+    - auth
+  summary: Увійти через Google
+  description: |
+    Створити нову сесію на основі токена від Google.
+    Якщо обліковки користувача не знайдено, то сервер створить нову обліковку на основі даних Google
+    та створить нову локальну сесію.
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              description: Токен `credentials` від Google
+          required:
+            - token
+  responses:
+    "201":
+      description: Created
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\session.yaml
+    "400":
+      description: Bad request
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\bad_request_error.yaml
+              - $ref: ..\..\errors\invalid_token.yaml

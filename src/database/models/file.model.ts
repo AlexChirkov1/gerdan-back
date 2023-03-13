@@ -1,5 +1,7 @@
-import { Column, CreatedAt, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, CreatedAt, DataType, Model, Scopes, Table } from 'sequelize-typescript';
+import { commonScopes } from '../common/common.scopes';
 
+@Scopes(() => Object.assign({}, commonScopes))
 @Table({
     createdAt: true,
     updatedAt: false,
@@ -17,9 +19,10 @@ export class File extends Model {
     @CreatedAt
     createdAt: Date;
 
+    // TODO: deprecated
     @Column({
         type: DataType.BLOB,
-        allowNull: false,
+        allowNull: true,
     })
     blob: Buffer;
 
@@ -28,4 +31,16 @@ export class File extends Model {
         allowNull: false,
     })
     type: number;
+
+    @Column({
+        type: DataType.UUID,
+        allowNull: false,
+    })
+    name: string;
+
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    userId: ID;
 }

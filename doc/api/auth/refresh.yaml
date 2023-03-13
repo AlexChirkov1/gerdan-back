@@ -1,0 +1,46 @@
+post:
+  operationId: refresh
+  security:
+    - {}
+  tags:
+    - auth
+  summary: Оновити сесію
+  description: Створити нову сесію користувача
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            refreshToken:
+              type: string
+              description: Токен отриманий при створенні сесії
+          required:
+            - token
+  responses:
+    "201":
+      description: Created
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\session.yaml
+    "400":
+      description: Bad request
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\bad_request_error.yaml
+              - $ref: ..\..\errors\invalid_token.yaml
+    "422":
+      description: Unprocessable entity
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unprocessable_entity.yaml
+              - $ref: ..\..\errors\invalid_token.yaml

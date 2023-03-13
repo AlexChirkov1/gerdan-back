@@ -4,10 +4,6 @@ import { User } from 'src/database/models/user.model';
 
 export class UserDetailsDto extends BaseDto {
     @Expose()
-    firstName: string;
-    @Expose()
-    lastName: string;
-    @Expose()
     username: string;
     @Expose()
     email: string;

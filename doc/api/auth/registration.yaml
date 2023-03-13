@@ -1,0 +1,54 @@
+post:
+  operationId: registration
+  security:
+    - {}
+  tags:
+    - auth
+  summary: Реєстрація через email
+  description: |
+    Створити обліковий запис користувача за допомогою пари email та пароль.
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              minLength: 3
+              maxLength: 255
+            email:
+              type: string
+              format: email
+              minLength: 4
+              maxLength: 255
+            password:
+              type: string
+              format: password
+              description: "Пароль повинен складатися з будь-якої послідовності цифр, великих та малих літер латинського алфавіту та спеціальних символів: `!` `@` `#` `$` `%` `^` `&` `*` `(` `)` `_` `-` `+` `=`"
+              pattern: /^[a-zA-Z0-9!@#$%^&*()_\-+=]{6,30}$/
+              minLength: 6
+              maxLength: 30
+              writeOnly: true
+          required:
+            - username
+            - email
+            - password
+  responses:
+    "201":
+      description: Created
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\session.yaml
+    "400":
+      description: Bad request
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\bad_request_error.yaml
+              - $ref: ..\..\errors\email_already_exist.yaml

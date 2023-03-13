@@ -1,0 +1,169 @@
+put:
+  operationId: update_project_schema
+  security:
+    - bearer:
+        - "read:all"
+        - "write:all"
+  tags:
+    - projects
+  summary: Оновити схему
+  description: |
+    Створити нову або оновити схему в проєкті.
+
+    В полі `schema` необхідно передати матрицю з оновленими пікселями. 
+    Якщо піксель зафарбований він мусить мати параметр `filled: true` та поля `color` і `number`.
+    Якщо піксель пустий (використовується колір фону), то поля `color` і `number` мусять бути відсутніми 
+    та мати параметр `filled: false`. Пікселі мають бути унікальними в межах всієї матриці.
+
+    В полі `colormap` необхідно передати пронумерований список використаних кольорів в схемі.
+    Всі елементи масиву мусять бути унікальними. Всі кольори мусять існувати в матриці `schema`.
+  parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        example: MjA
+      required: true
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - grid
+                - loom
+                - brick
+                - peyote
+            backgroundColor:
+              type: string
+              format: hex
+              description: Колір в шістнадцятковому форматі та гештеґом
+              pattern: /^#[0-9A-Fa-f]{6}/
+              example: "#ffffff"
+              minLength: 7
+              maxLength: 7
+            schema:
+              type: array
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    x:
+                      type: integer
+                      minimum: 0
+                    y:
+                      type: integer
+                      minimum: 0
+                    filled:
+                      type: boolean
+                    color:
+                      type: string
+                      format: hex
+                      description: Колір в шістнадцятковому форматі та гештеґом
+                      pattern: /^#[0-9A-Fa-f]{6}/
+                      example: "#ffffff"
+                      minLength: 7
+                      maxLength: 7
+                    number:
+                      type: integer
+                      minimum: 0
+                  required:
+                    - x
+                    - y
+                    - filled
+                minLength: 1
+                uniqueItems: true
+              minLength: 1
+              uniqueItems: true
+            colormap:
+              type: array
+              items:
+                type: object
+                properties:
+                  color:
+                    type: string
+                    format: hex
+                    description: Колір в шістнадцятковому форматі та гештеґом
+                    pattern: /^#[0-9A-Fa-f]{6}/
+                    example: "#ffffff"
+                    minLength: 7
+                    maxLength: 7
+                  number:
+                    type: integer
+                    minimum: 0
+                required:
+                  - color
+                  - number
+              minLength: 1
+              uniqueItems: true
+          required:
+            - schema
+            - colormap
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\project_metadata.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+    "404":
+      description: Not found
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\not_found_error.yaml
+              - $ref: ..\..\errors\project_not_found.yaml
+delete:
+  operationId: delete_project
+  security:
+    - bearer:
+        - "write:all"
+  tags:
+    - projects
+  summary: Видалити проєкт
+  description: Видалити проєкт користувача
+  parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        example: MjA
+      required: true
+  responses:
+    "204":
+      description: No Content
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+    "404":
+      description: Not found
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\not_found_error.yaml
+              - $ref: ..\..\errors\project_not_found.yaml

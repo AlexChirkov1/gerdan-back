@@ -1,0 +1,8 @@
+type: object
+properties: 
+  status: 
+    type: string
+    example: Bad request
+  statusCode:
+    type: integer
+    example: 400

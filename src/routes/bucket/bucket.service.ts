@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { randomUUID } from 'crypto';
 import { Transaction } from 'sequelize';
 import { FileTypes } from 'src/database/file_types';
 import { File } from 'src/database/models/file.model';
@@ -15,6 +16,10 @@ export class BucketService {
         return await this.fileModel.findByPk(id);
     }
 
+    async prepareJPGFile(userId: ID, transaction?: Transaction): Promise<File> {
+        return await this.fileModel.create({ type: FileTypes.jpg, name: randomUUID(), userId }, { transaction });
+    }
+
     async saveFile(data: Buffer, type: FileTypes, transaction?: Transaction): Promise<File> {
         return await this.fileModel.create({ blob: data, type: FileTypes[type], }, { transaction });
     }
@@ -25,7 +30,14 @@ export class BucketService {
     }
 
     async destroyFile(fileId: ID, transaction?: Transaction): Promise<void> {
-        const file = await this.fileModel.findByPk(fileId, { transaction });
-        await file.destroy({ transaction });
+        await this.fileModel.destroy({ where: { id: fileId }, transaction });
+    }
+
+    async countFiles(transaction?: Transaction): Promise<number> {
+        return await this.fileModel.count({ transaction });
+    }
+
+    async getFilesList(limit: number, offset: number, transaction?: Transaction): Promise<File[]> {
+        return await this.fileModel.scope([{ method: ['offsetPagination', limit, offset] }]).findAll({ transaction });
     }
 }

@@ -1,0 +1,49 @@
+post:
+  operationId: login
+  security:
+    - {}
+  tags:
+    - auth
+  summary: Вхід через email та пароль
+  description: |
+    Створити нову сесію на основі пари email та пароль.
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+              minLength: 4
+              maxLength: 255
+            password:
+              type: string
+              format: password
+              description: "Пароль повинен складатися з будь-якої послідовності цифр, великих та малих літер латинського алфавіту та спеціальних символів: `!` `@` `#` `$` `%` `^` `&` `*` `(` `)` `_` `-` `+` `=`"
+              pattern: /^[a-zA-Z0-9!@#$%^&*()_\-+=]{6,30}$/
+              minLength: 6
+              maxLength: 30
+              writeOnly: true
+          required:
+            - email
+            - password
+  responses:
+    "201":
+      description: Created
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\session.yaml
+    "400":
+      description: Bad request
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\bad_request_error.yaml
+              - $ref: ..\..\errors\invalid_credentials.yaml
