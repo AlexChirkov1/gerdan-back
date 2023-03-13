@@ -42,4 +42,33 @@ export class ProjectsService {
             'withPreview'
         ]).findByPk(id, { transaction });
     }
+
+    async getCursors(records: number, id: ID, transaction?: Transaction): Promise<{ prev: ID | null, next: ID | null; }> {
+        const prev = await this.getPrevCursor(records, id, transaction);
+        const next = await this.getNextCursor(records, id, transaction);
+        return { prev, next };
+    }
+
+    async getPrevCursor(records: number, id: ID, transaction?: Transaction): Promise<ID | null> {
+        const gerdan = await this.projectModel.scope([{ method: ['prevCursor', records, id] }]).findOne({ transaction });
+        return gerdan?.id;
+    }
+
+    async getNextCursor(records: number, id: ID, transaction?: Transaction): Promise<ID | null> {
+        const gerdan = await this.projectModel.scope([{ method: ['nextCursor', records, id] }]).findOne({ transaction });
+        return gerdan?.id;
+    }
+
+    async countProjectsForUser(userId: ID, transaction?: Transaction): Promise<number> {
+        return await this.projectModel.scope([{ method: ['byAuthorId', userId] }]).count({ transaction });
+    }
+
+    async getProjectsForUser(records: number, userId: ID, id?: ID, transaction?: Transaction): Promise<Project[]> {
+        return await this.projectModel.scope([
+            'withAuthor',
+            'withPreview',
+            { method: ['byAuthorId', userId] },
+            { method: ['pagination', records, id] }
+        ]).findAll({ transaction, subQuery: false });
+    }
 }

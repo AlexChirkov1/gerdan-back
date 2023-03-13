@@ -1,15 +1,19 @@
-import { Body, Controller, Get, Param, Post, Put, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
 import { Base10Pipe } from 'src/common/base10.pipe';
+import { CursorPaginationInput } from 'src/common/cursor_pagination.input';
+import { CursorPaginationSchema } from 'src/common/cursor_pagination.schema';
 import { ValidateSchema } from 'src/common/validate.decorator';
+import { validationRules } from 'src/common/validations.rules';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
+import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
 import { ProjectsService } from './projects.service';
@@ -20,6 +24,27 @@ import { ProjectMetadataSchema } from './schemas/project_metadata.schema';
 @UseInterceptors(TransactionInterceptor)
 export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) { }
+
+    @Get()
+    @Auth()
+    @ValidateSchema(CursorPaginationSchema)
+    async getProjects(
+        @SequelizeTransaction() transaction: Transaction,
+        @UserSession() session: UserSessionData,
+        @Query() query: CursorPaginationInput
+    ): Promise<ProjectListDto> {
+        let projects = [];
+        let cursors = {};
+        const totalCount = await this.projectsService.countProjectsForUser(session.userId, transaction);
+        console.log(query);
+        if (totalCount) {
+            const records = query.records ?? validationRules.defaultPagination;
+            projects = await this.projectsService.getProjectsForUser(records, session.userId, query.id, transaction);
+            cursors = await this.projectsService.getCursors(records, projects[0].id, transaction);
+        }
+
+        return new ProjectListDto(projects, { totalCount, count: projects.length, ...cursors });
+    }
 
     @Post()
     @Auth()
