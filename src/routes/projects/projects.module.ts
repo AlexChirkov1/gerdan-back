@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Project } from 'src/database/models/project.model';
+import { SupabaseService } from 'src/services/supabase/supabase.service';
+import { BucketModule } from '../bucket/bucket.module';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 
 @Module({
-    imports: [SequelizeModule.forFeature([Project])],
+    imports: [
+        BucketModule,
+        SequelizeModule.forFeature([Project])
+    ],
     controllers: [ProjectsController],
-    providers: [ProjectsService]
+    providers: [ProjectsService, SupabaseService]
 })
 export class ProjectsModule { }
