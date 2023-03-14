@@ -1,3 +1,46 @@
+get:
+  operationId: get_project_schema
+  security:
+    - bearer:
+        - "read:all"
+        - "write:all"
+  tags:
+    - projects
+  summary: Отримати схему проєкта
+  parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        example: MjA
+      required: true
+  responses:
+    "200":
+      description: Success
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\project_schema.yaml
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+    "404":
+      description: Not found
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\not_found_error.yaml
+              - $ref: ..\..\errors\project_not_found.yaml
 put:
   operationId: update_project_schema
   security:
@@ -111,7 +154,7 @@ put:
           schema:
             type: object
             allOf:
-              - $ref: components\project_metadata.yaml
+              - $ref: components\project_schema.yaml
     "401":
       description: Unauthorized
       content:
