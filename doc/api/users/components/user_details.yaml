@@ -20,3 +20,10 @@ properties:
     maxLength: 255
   boardCount:
     type: integer
+required:
+  - id
+  - createdAt
+  - updatedAt
+  - username
+  - email
+  - boardCount
