@@ -6,3 +6,6 @@ properties:
   refreshToken:
     type: string
     description: Використайте цей токен щоб отримати нову пару токенів в ***POST api/auth/refresh***
+required:
+  - accessToken
+  - refreshToken

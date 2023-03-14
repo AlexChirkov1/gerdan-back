@@ -1,0 +1,89 @@
+type: object
+properties:
+  id:
+    type: string
+    example: MjA
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time
+  name:
+    type: string
+  type:
+    type: string
+    enum:
+      - grid
+      - loom
+      - brick
+      - peyote
+  backgroundColor:
+    type: string
+    format: hex
+    example: "#ffffff"
+    description: Колір в шістнадцятковому форматі та гештеґом
+  schema:
+    type: array
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          x:
+            type: integer
+            minimum: 0
+          y:
+            type: integer
+            minimum: 0
+          filled:
+            type: boolean
+          color:
+            type: string
+            format: hex
+            description: Колір в шістнадцятковому форматі та гештеґом
+            pattern: /^#[0-9A-Fa-f]{6}/
+            example: "#ffffff"
+            minLength: 7
+            maxLength: 7
+          number:
+            type: integer
+            minimum: 0
+        required:
+          - x
+          - y
+          - filled
+      minLength: 1
+      uniqueItems: true
+    minLength: 1
+    uniqueItems: true
+  colormap:
+    type: array
+    items:
+      type: object
+      properties:
+        color:
+          type: string
+          format: hex
+          description: Колір в шістнадцятковому форматі та гештеґом
+          pattern: /^#[0-9A-Fa-f]{6}/
+          example: "#ffffff"
+          minLength: 7
+          maxLength: 7
+        number:
+          type: integer
+          minimum: 0
+      required:
+        - color
+        - number
+    minLength: 1
+    uniqueItems: true
+required:
+  - id
+  - createdAt
+  - updatedAt
+  - name
+  - type
+  - backgroundColor
+  - schema
+  - colormap

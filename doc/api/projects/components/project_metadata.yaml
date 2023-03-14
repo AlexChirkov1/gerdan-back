@@ -22,3 +22,11 @@ properties:
     type: string
     format: hex
     example: "#ffffff"
+    description: Колір в шістнадцятковому форматі та гештеґом
+required:
+  - id
+  - createdAt
+  - updatedAt
+  - name
+  - type
+  - backgroundColor

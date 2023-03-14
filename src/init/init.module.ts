@@ -1,7 +1,7 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { InjectConnection, SequelizeModule } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize';
-import { getFileType } from 'src/database/file_types';
+// import { getFileType } from 'src/database/file_types';
 import { File } from 'src/database/models/file.model';
 import { BucketService } from 'src/routes/bucket/bucket.service';
 import { SupabaseService } from 'src/services/supabase/supabase.service';
@@ -19,20 +19,20 @@ export class InitModule implements OnModuleInit {
     ) { }
 
     async onModuleInit(): Promise<void> {
-        await this.supabaseService.createBucket();
+        // await this.supabaseService.createBucket();
 
-        await this.sequelize.transaction(async (transaction) => {
-            const totalCount = await this.bucketService.countFiles(transaction);
+        // await this.sequelize.transaction(async (transaction) => {
+        //     const totalCount = await this.bucketService.countFiles(transaction);
 
-            for (let limit = 100, offset = 0; offset <= totalCount; offset += limit) {
-                const files = await this.bucketService.getFilesList(limit, offset, transaction);
-                if (!files.length) break;
+        //     for (let limit = 100, offset = 0; offset <= totalCount; offset += limit) {
+        //         const files = await this.bucketService.getFilesList(limit, offset, transaction);
+        //         if (!files.length) break;
 
-                for (const file of files) {
-                    if (!file.blob) continue;
-                    this.supabaseService.addFileToStorage(file.blob, file.userId, `${file.name}.${getFileType(file.type)}`);
-                }
-            }
-        });
+        //         for (const file of files) {
+        //             if (!file.blob) continue;
+        //             this.supabaseService.addFileToStorage(file.blob, file.userId, `${file.name}.${getFileType(file.type)}`);
+        //         }
+        //     }
+        // });
     }
 }
