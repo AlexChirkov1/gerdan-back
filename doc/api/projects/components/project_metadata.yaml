@@ -23,6 +23,18 @@ properties:
     format: hex
     example: "#ffffff"
     description: Колір в шістнадцятковому форматі та гештеґом
+  preview:
+    type: object
+    properties:
+      id:
+        type: string
+        example: MjA
+      url:
+        type: string
+        format: uri
+    required:
+      - id
+      - url
 required:
   - id
   - createdAt
@@ -30,3 +42,4 @@ required:
   - name
   - type
   - backgroundColor
+  - preview

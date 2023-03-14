@@ -9,13 +9,17 @@ import { ValidateSchema } from 'src/common/validate.decorator';
 import { validationRules } from 'src/common/validations.rules';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
+import { getFileType } from 'src/database/file_types';
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
+import { SupabaseService } from 'src/services/supabase/supabase.service';
+import { BucketService } from '../bucket/bucket.service';
 import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
+import { createPreview } from './preview';
 import { ProjectsService } from './projects.service';
 import { ProjectSchema } from './schemas/project.schema';
 import { ProjectMetadataSchema } from './schemas/project_metadata.schema';
@@ -23,7 +27,11 @@ import { ProjectMetadataSchema } from './schemas/project_metadata.schema';
 @Controller('projects')
 @UseInterceptors(TransactionInterceptor)
 export class ProjectsController {
-    constructor(private readonly projectsService: ProjectsService) { }
+    constructor(
+        private readonly projectsService: ProjectsService,
+        private readonly bucketService: BucketService,
+        private readonly supabaseService: SupabaseService,
+    ) { }
 
     @Get()
     @Auth()
@@ -59,6 +67,10 @@ export class ProjectsController {
             backgroundColor: body.backgroundColor,
             userId: session.userId
         }, transaction);
+        const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
+        const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
+        await project.update({ previewId: file.id }, { transaction });
+        await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
 
         return new ProjectMetadataDto(project);
     }
@@ -80,7 +92,10 @@ export class ProjectsController {
             schema: JSON.stringify(body.schema),
             colormap: JSON.stringify(body.colormap),
         }, transaction);
-        project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
+        project = await this.projectsService.getDetails(id, transaction);
+        const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
+        await this.supabaseService.updateFileInStorage(preview, session.userId, `${project.preview.name}.${getFileType(project.preview.type)}`);
+
         return new ProjectSchemaDto(project);
     }
 
@@ -92,8 +107,9 @@ export class ProjectsController {
         @UserSession() session: UserSessionData,
         @Param('id', Base10Pipe) id: string,
     ) {
-        const project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
+        let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
+        project = await this.projectsService.getDetails(id, transaction);
         return new ProjectSchemaDto(project);
     }
 
@@ -109,7 +125,8 @@ export class ProjectsController {
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
         project = await this.projectsService.getDetails(id, transaction);
         if (project?.previewId) {
-            // TODO: destroying files
+            await this.supabaseService.destroyFileInStorage(session.userId, `${project.preview.name}.${getFileType(project.preview.type)}`);
+            await this.bucketService.destroyFile(project.previewId, transaction);
         }
         await project.destroy({ transaction });
     }
