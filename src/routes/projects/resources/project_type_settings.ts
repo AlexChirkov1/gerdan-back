@@ -2,8 +2,8 @@ import { ProjectTypeEnum } from 'src/database/models/project.model';
 
 export type ProjectTypeSetting = {
     width: number,
-    height: number
-}
+    height: number;
+};
 
 export const ProjectTypeSettings = {
     [ProjectTypeEnum.loom]: {

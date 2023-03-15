@@ -143,7 +143,7 @@ export class ProjectsController {
         @UserSession() session: UserSessionData,
         @Param('id', Base10Pipe) id: string,
         @Query() query: PDFOptionsInput,
-        @Res() res: Response,
+        // @Res() res: Response,
     ) {
 
         // TODO: move to helpers
@@ -169,6 +169,6 @@ export class ProjectsController {
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
         project = await this.projectsService.getDetails(id, transaction);
         const file = await createPDF(project);
-        // res.status(201).send(file);
+        // res.status(201);//.send(file);
     }
 }

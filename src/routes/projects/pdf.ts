@@ -16,6 +16,17 @@ const pdfOptions = {
     WHITE_COLOR: '#ffffff',
 };
 
+const pdfDocument = {
+    WIDTH: 595.28,
+    HEIGHT: 841.89,
+    MARGIN_LEFT: 60,
+    MARGIN_TOP: 58,
+    MARGIN_RIGHT: 55.28,
+    MARGIN_BOTTOM: 57.89,
+    PRINT_WIDTH: 480, // width - marginLeft - marginRight,
+    PRINT_HEIGHT: 726, // height - marginTop - marginBottom,
+} as const;
+
 export async function createPDF(project: Project): Promise<void> {
     const filePath = FileStorageHelper.prepareFilePathToTempFolder(`${project.author.username}-${project.name}`, 'pdf');
 
@@ -40,6 +51,7 @@ export async function createPDF(project: Project): Promise<void> {
     addInfoPage(doc, { username: project.author.username, projectName: project.name });
     addSchemaPage(doc, JSON.parse(project.schema), project.type, project.backgroundColor);
 
+    doc.end();
     // return await FileStorageHelper.extractFile(filePath);
 }
 
@@ -50,16 +62,38 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
         width: ProjectTypeSettings[type].width,
         height: ProjectTypeSettings[type].height,
     };
+    const beadPerPage = ~~(pdfDocument.PRINT_HEIGHT / bead.height);
+    const totalPages = ~~(schema.length / beadPerPage);
+    console.log(totalPages);
 
+    let xShift = 0;
+    let yShift = 0;
+    let page = 0;
     for (let y = 0; y < schema.length; y++) {
+        if (!(y % beadPerPage)) addNewPage(doc, { currentPage: page++, totalPages });
+
+        if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : xShift = 0;
         for (let x = 0; x < schema[y].length; x++) {
+            if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
             const xPosition = x * bead.width;
             const yPosition = y * bead.height;
             const color = schema[y][x].filled ? schema[y][x].color : backgroundColor;
-            doc.rect(xPosition, yPosition, bead.width, bead.height)
+
+            doc
+                .rect(xPosition + xShift, yPosition + yShift, bead.width, bead.height)
                 .fillAndStroke(color, pdfOptions.BLACK_COLOR);
         }
     }
+}
+
+function addNewPage(doc: Doc, options: { currentPage: number; totalPages: number; }) {
+    doc.addPage()
+        .fontSize(pdfOptions.SITE_MARK_FONT)
+        .fillColor(pdfOptions.BLACK_COLOR)
+        .text(`${options.currentPage + 1} / ${options.totalPages + 1}`,
+            500,
+            800
+        );
 }
 
 function addInfoPage(doc: Doc, options: { username: string, projectName: string; }) {
@@ -71,20 +105,21 @@ function addInfoPage(doc: Doc, options: { username: string, projectName: string;
     doc.addPage()
         .font('Roboto-Medium')
         .fontSize(pdfOptions.TITLE_FONT)
-        .text(options.projectName, this.centeredPositionOfText(options.projectName, pdfOptions.TITLE_FONT), 100)
+        .text(options.projectName, getCenteredPositionOfText(doc, options.projectName, pdfOptions.TITLE_FONT), 100)
         .font('Roboto-Regular')
         .fontSize(pdfOptions.SUBTITLE_FONT)
         .moveDown()
-        .text(byUser, this.centeredPositionOfText(byUser, pdfOptions.SUBTITLE_FONT))
+        .text(byUser, getCenteredPositionOfText(doc, byUser, pdfOptions.SUBTITLE_FONT))
         .moveDown()
         .moveDown()
-        .text(fromSite, this.centeredPositionOfText(fromSite, pdfOptions.SUBTITLE_FONT))
-        .text(siteURL, this.centeredPositionOfText(siteURL, pdfOptions.SUBTITLE_FONT), null, { link: process.env.SITE_URL, underline: true, oblique: true });
+        .text(fromSite, getCenteredPositionOfText(doc, fromSite, pdfOptions.SUBTITLE_FONT))
+        .text(siteURL, getCenteredPositionOfText(doc, siteURL, pdfOptions.SUBTITLE_FONT), null, { link: process.env.SITE_URL, underline: true, oblique: true });
 
     if (process.env.SUPPORT_US_URL && process.env.SUPPORT_US_URL !== '') {
-        doc.moveDown()
-            .text(supportUsMessage, this.centeredPositionOfText(supportUsMessage, pdfOptions.SUBTITLE_FONT))
-            .text(process.env.SUPPORT_US_URL, this.centeredPositionOfText(process.env.SUPPORT_US_URL, pdfOptions.SUBTITLE_FONT), null, { link: process.env.SUPPORT_US_URL, underline: true, oblique: true });
+        doc
+            .moveDown()
+            .text(supportUsMessage, getCenteredPositionOfText(doc, supportUsMessage, pdfOptions.SUBTITLE_FONT))
+            .text(process.env.SUPPORT_US_URL, getCenteredPositionOfText(doc, process.env.SUPPORT_US_URL, pdfOptions.SUBTITLE_FONT), null, { link: process.env.SUPPORT_US_URL, underline: true, oblique: true });
     }
 
     addSiteMark(doc);
@@ -92,13 +127,14 @@ function addInfoPage(doc: Doc, options: { username: string, projectName: string;
 
 function addSiteMark(doc: Doc) {
     const siteMark = process.env.SITE_MARK as string;
-    const textPosition = this.centeredPositionOfText(siteMark, this.FONT_SIZE);
+    const textPosition = getCenteredPositionOfText(doc, siteMark, pdfOptions.SITE_MARK_FONT);
 
     doc
         .fontSize(pdfOptions.SITE_MARK_FONT)
         .fillColor(pdfOptions.BLACK_COLOR)
-        .text(siteMark,
-            textPosition,
-            800
-        );
+        .text(siteMark, textPosition, 800);
+}
+
+function getCenteredPositionOfText(doc: Doc, text: string, fontSize: number) {
+    return (pdfDocument.WIDTH / 2 - doc.fontSize(fontSize).widthOfString(text) / 2);
 }
