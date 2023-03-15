@@ -24,12 +24,17 @@ export class ProjectsService {
         private readonly projectModel: typeof Project
     ) { }
 
+
     async createProject(metadata: ProjectMetadata, transaction: Transaction): Promise<Project> {
         return await this.projectModel.create(metadata, { transaction });
     }
 
     async getProjectByIdForUser(id: ID, userId: ID, transaction?: Transaction): Promise<Project> {
-        return await this.projectModel.findOne({ where: { id, userId }, transaction });
+        return await this.projectModel
+            .scope([
+                'withoutSchema'
+            ])
+            .findOne({ where: { id, userId, }, transaction });
     }
 
     async updateSchema(id: ID, projectSchema: ProjectSchemaData, transaction?: Transaction): Promise<void> {
@@ -37,10 +42,12 @@ export class ProjectsService {
     }
 
     async getDetails(id: ID, transaction?: Transaction): Promise<Project> {
-        return await this.projectModel.scope([
-            'withAuthor',
-            'withPreview'
-        ]).findByPk(id, { transaction });
+        return await this.projectModel
+            .scope([
+                'withAuthor',
+                'withPreview'
+            ])
+            .findByPk(id, { transaction });
     }
 
     async getCursors(records: number, id: ID, transaction?: Transaction): Promise<{ prev: ID | null, next: ID | null; }> {
@@ -50,12 +57,22 @@ export class ProjectsService {
     }
 
     async getPrevCursor(records: number, id: ID, transaction?: Transaction): Promise<ID | null> {
-        const gerdan = await this.projectModel.scope([{ method: ['prevCursor', records, id] }]).findOne({ transaction });
+        const gerdan = await this.projectModel
+            .scope([
+                { method: ['prevCursor', records, id] },
+                'withoutSchema'
+            ])
+            .findOne({ transaction });
         return gerdan?.id;
     }
 
     async getNextCursor(records: number, id: ID, transaction?: Transaction): Promise<ID | null> {
-        const gerdan = await this.projectModel.scope([{ method: ['nextCursor', records, id] }]).findOne({ transaction });
+        const gerdan = await this.projectModel
+            .scope([
+                { method: ['nextCursor', records, id] },
+                'withoutSchema'
+            ])
+            .findOne({ transaction });
         return gerdan?.id;
     }
 
@@ -65,6 +82,7 @@ export class ProjectsService {
 
     async getProjectsForUser(records: number, userId: ID, id?: ID, transaction?: Transaction): Promise<Project[]> {
         return await this.projectModel.scope([
+            'withoutSchema',
             'withAuthor',
             'withPreview',
             { method: ['byAuthorId', userId] },

@@ -29,6 +29,7 @@ export enum ProjectTypeEnum {
 }
 
 @Scopes(() => Object.assign({
+    withoutSchema: () => ({ attributes: ["id", "createdAt", "updatedAt", "userId", "previewId", "name", "type", "backgroundColor"] }),
     withAuthor: () => ({ include: { model: User, required: true } }),
     withPreview: () => ({ include: { model: File, required: false } }),
     byAuthorId: (userId) => ({ where: { userId } })
