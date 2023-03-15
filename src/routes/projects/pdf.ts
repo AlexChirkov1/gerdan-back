@@ -56,23 +56,27 @@ export async function createPDF(project: Project): Promise<void> {
 }
 
 function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, backgroundColor: string) {
-    const bead = getBeadsSize(type);
+    const bead = getBeadsSize(schema, type);
+
     const beadsPerPage = ~~(pdfDocument.PRINT_HEIGHT / bead.height);
     const totalPages = ~~(schema.length / beadsPerPage);
-    const leftOffset = calculateLeftOffset(schema, bead.width);
-    const topOffset = calculateTopOffset(schema, bead.height);
     let xShift = 0;
     let yShift = 0;
     let page = 0;
+
+    const leftOffset = calculateLeftOffset(schema, bead.width);
+    const topOffset = calculateTopOffset(schema, bead.height);
     for (let y = 0; y < schema.length; y++) {
         if (!(y % beadsPerPage)) addNewPage(doc, { currentPage: page++, totalPages });
         if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : xShift = 0;
+        const pageOffset = beadsPerPage * (page - 1);
         for (let x = 0; x < schema[y].length; x++) {
             if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
             const xPosition = x * bead.width;
-            const yPosition = y * bead.height;
+            const yPosition = (y - pageOffset) * bead.height;
             const color = schema[y][x].filled ? schema[y][x].color : backgroundColor;
             doc
+                .lineWidth(0.5)
                 .rect(
                     leftOffset + xPosition + xShift,
                     topOffset + yPosition + yShift,
@@ -82,6 +86,13 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
                 .fillAndStroke(color, pdfOptions.BLACK_COLOR);
         }
     }
+}
+
+function calculateScaleBetweenOneAndTwo(columnsCount: number, beadWidth: number, scale = 10): number {
+    if (scale === 20) return 0.5;
+    const rowLength = columnsCount * beadWidth / (scale / 10);
+    if (rowLength > pdfDocument.PRINT_WIDTH) return calculateScaleBetweenOneAndTwo(columnsCount, beadWidth, scale + 1);
+    else return 1 / (scale / 10);
 }
 
 function calculateLeftOffset(schema: SchemaItem[][], width: number): number {
@@ -97,10 +108,11 @@ function calculateTopOffset(schema: SchemaItem[][], height: number): number {
     return offset;
 }
 
-function getBeadsSize(type: ProjectTypeEnum): ProjectTypeSetting {
+function getBeadsSize(schema: SchemaItem[][], type: ProjectTypeEnum): ProjectTypeSetting {
+    const scaleFactor = calculateScaleBetweenOneAndTwo(Math.max(schema[0].length, schema[1].length), ProjectTypeSettings[type].width);
     return {
-        width: ProjectTypeSettings[type].width,
-        height: ProjectTypeSettings[type].height,
+        width: ProjectTypeSettings[type].width * scaleFactor,
+        height: ProjectTypeSettings[type].height * scaleFactor,
     };
 }
 
