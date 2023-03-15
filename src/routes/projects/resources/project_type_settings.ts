@@ -1,7 +1,7 @@
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 
 export type ProjectTypeSetting = {
-    width: number,
+    width: number;
     height: number;
 };
 

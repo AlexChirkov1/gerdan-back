@@ -4,7 +4,7 @@ import { Project, ProjectTypeEnum } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { FontLoader } from 'src/utils/font_loader';
 import { SchemaItem } from './dtos/input_types';
-import { ProjectTypeSettings } from './resources/project_type_settings';
+import { ProjectTypeSetting, ProjectTypeSettings } from './resources/project_type_settings';
 
 type Doc = typeof PDFDocument;
 
@@ -56,34 +56,52 @@ export async function createPDF(project: Project): Promise<void> {
 }
 
 function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, backgroundColor: string) {
-    const width = Math.max(schema[0].length, schema[1].length);
-    const height = schema.length;
-    const bead = {
-        width: ProjectTypeSettings[type].width,
-        height: ProjectTypeSettings[type].height,
-    };
-    const beadPerPage = ~~(pdfDocument.PRINT_HEIGHT / bead.height);
-    const totalPages = ~~(schema.length / beadPerPage);
-    console.log(totalPages);
-
+    const bead = getBeadsSize(type);
+    const beadsPerPage = ~~(pdfDocument.PRINT_HEIGHT / bead.height);
+    const totalPages = ~~(schema.length / beadsPerPage);
+    const leftOffset = calculateLeftOffset(schema, bead.width);
+    const topOffset = calculateTopOffset(schema, bead.height);
     let xShift = 0;
     let yShift = 0;
     let page = 0;
     for (let y = 0; y < schema.length; y++) {
-        if (!(y % beadPerPage)) addNewPage(doc, { currentPage: page++, totalPages });
-
+        if (!(y % beadsPerPage)) addNewPage(doc, { currentPage: page++, totalPages });
         if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : xShift = 0;
         for (let x = 0; x < schema[y].length; x++) {
             if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
             const xPosition = x * bead.width;
             const yPosition = y * bead.height;
             const color = schema[y][x].filled ? schema[y][x].color : backgroundColor;
-
             doc
-                .rect(xPosition + xShift, yPosition + yShift, bead.width, bead.height)
+                .rect(
+                    leftOffset + xPosition + xShift,
+                    topOffset + yPosition + yShift,
+                    bead.width,
+                    bead.height
+                )
                 .fillAndStroke(color, pdfOptions.BLACK_COLOR);
         }
     }
+}
+
+function calculateLeftOffset(schema: SchemaItem[][], width: number): number {
+    const beadsInRow = Math.max(schema[0].length, schema[1].length);
+    let offset = (pdfDocument.WIDTH - beadsInRow * width) / 2;
+    if (offset <= pdfDocument.MARGIN_LEFT) offset = pdfDocument.MARGIN_LEFT;
+    return offset;
+}
+
+function calculateTopOffset(schema: SchemaItem[][], height: number): number {
+    let offset = (pdfDocument.HEIGHT - schema.length * height) / 2;
+    if (offset <= pdfDocument.MARGIN_TOP) offset = pdfDocument.MARGIN_TOP;
+    return offset;
+}
+
+function getBeadsSize(type: ProjectTypeEnum): ProjectTypeSetting {
+    return {
+        width: ProjectTypeSettings[type].width,
+        height: ProjectTypeSettings[type].height,
+    };
 }
 
 function addNewPage(doc: Doc, options: { currentPage: number; totalPages: number; }) {
