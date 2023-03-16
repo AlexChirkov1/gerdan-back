@@ -5,7 +5,7 @@ import { TransactionInterceptor } from 'src/database/common/transaction.intercep
 
 @Controller('debug')
 export class DebugController {
-    
+
     @Get()
     @UseInterceptors(TransactionInterceptor)
     async test(

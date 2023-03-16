@@ -1,5 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';

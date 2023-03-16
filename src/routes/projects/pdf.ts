@@ -19,12 +19,12 @@ const pdfOptions = {
 const pdfDocument = {
     WIDTH: 595.28,
     HEIGHT: 841.89,
-    MARGIN_LEFT: 60,
-    MARGIN_TOP: 58,
-    MARGIN_RIGHT: 55.28,
-    MARGIN_BOTTOM: 57.89,
-    PRINT_WIDTH: 480, // width - marginLeft - marginRight,
-    PRINT_HEIGHT: 726, // height - marginTop - marginBottom,
+    MARGIN_LEFT: 75.6, // 60
+    MARGIN_TOP: 37.8, // 58
+    MARGIN_RIGHT: 37.8, // 55.28
+    MARGIN_BOTTOM: 37.8, // 57.89
+    getPrintWidth: () => pdfDocument.WIDTH - pdfDocument.MARGIN_LEFT - pdfDocument.MARGIN_RIGHT,
+    getPrintHeight: () => pdfDocument.HEIGHT - pdfDocument.MARGIN_TOP - pdfDocument.MARGIN_BOTTOM,
 } as const;
 
 export async function createPDF(project: Project): Promise<void> {
@@ -58,47 +58,131 @@ export async function createPDF(project: Project): Promise<void> {
 function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, backgroundColor: string) {
     const bead = getBeadsSize(schema, type);
 
-    const beadsPerPage = ~~(pdfDocument.PRINT_HEIGHT / bead.height);
-    const totalPages = ~~(schema.length / beadsPerPage);
+    const beadsRowsPerPage = ~~(pdfDocument.getPrintHeight() / bead.height);
+    const beadsColsPerPage = ~~(pdfDocument.getPrintWidth() / bead.width);
+    const totalPages = ~~(schema.length / beadsRowsPerPage);
     let xShift = 0;
     let yShift = 0;
-    let page = 0;
+    const pageNumber = 0;
 
-    const leftOffset = calculateLeftOffset(schema, bead.width);
-    const topOffset = calculateTopOffset(schema, bead.height);
-    for (let y = 0; y < schema.length; y++) {
-        if (!(y % beadsPerPage)) addNewPage(doc, { currentPage: page++, totalPages });
-        if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : xShift = 0;
-        const pageOffset = beadsPerPage * (page - 1);
-        for (let x = 0; x < schema[y].length; x++) {
-            if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
-            const xPosition = x * bead.width;
-            const yPosition = (y - pageOffset) * bead.height;
-            const color = schema[y][x].filled ? schema[y][x].color : backgroundColor;
-            doc
-                .lineWidth(0.5)
-                .rect(
-                    leftOffset + xPosition + xShift,
-                    topOffset + yPosition + yShift,
-                    bead.width,
-                    bead.height
-                )
-                .fillAndStroke(color, pdfOptions.BLACK_COLOR);
+    // const totalWidthInPixels = Math.max(schema[0].length, schema[1].length) * bead.width;
+    // const totalHeightInPixels = schema.length * bead.height;
+    // const chunkPagesCount = Math.ceil(pdfDocument.getPrintHeight() / bead.height) * bead.height;
+    // const chunkSlicesCount = Math.ceil(totalWidthInPixels / (pdfDocument.WIDTH - pdfDocument.MARGIN_LEFT - pdfDocument.MARGIN_RIGHT)) * bead.width;
+    console.log({
+        beadHeight: bead.height,
+        beadsColsPerPage,
+        beadsRowsPerPage,
+        // chunkPagesCount,
+        // chunkSlicesCount,
+        // totalHeightInPixels,
+        // PRINT_HEIGHT: pdfDocument.getPrintHeight(),
+        // beadHeightCount: (totalHeightInPixels / pdfDocument.getPrintHeight()) * bead.height
+    });
+    const { pages, totalRows, totalCols } = cutSchemaIntoPages(schema, bead, beadsRowsPerPage, beadsColsPerPage);
+    // const maxColsCount = calculateColumnsCountPerPage(schema, beadsColsPerPage);
+
+    let i = 0;
+    let colsCounter = 0;
+    let rowsCounter = 1;
+    for (const page of pages) {
+        // const leftOffset = calculateLeftOffset(page, bead.width);
+        // const topOffset = calculateTopOffset(page, bead.height);
+        for (let y = 0; y < page.length; y++) {
+            if (!(y % beadsRowsPerPage)) {
+                doc.addPage();
+                if (colsCounter >= totalCols) {
+                    colsCounter = 0;
+                    rowsCounter++;
+                }
+                doc.fontSize(pdfOptions.SITE_MARK_FONT)
+                    .fillColor(pdfOptions.BLACK_COLOR)
+                    .text(`Сторінка: ${++i}/${pages.length}, Колонка: ${++colsCounter}/${totalCols}, Рядок: ${rowsCounter}/${totalRows}`,
+                        100,
+                        800
+                    );
+            }
+            if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : 0;
+            for (let x = 0; x < page[y].length; x++) {
+                if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
+                const xPosition = x * bead.width;
+                const yPosition = y * bead.height;
+                const color = page[y][x].filled ? page[y][x].color : backgroundColor;
+                doc
+                    .lineWidth(0.5)
+                    .rect(
+                        pdfDocument.MARGIN_LEFT + xPosition + xShift,
+                        pdfDocument.MARGIN_TOP + yPosition + yShift,
+                        bead.width,
+                        bead.height
+                    )
+                    .fillAndStroke(color, pdfOptions.BLACK_COLOR);
+            }
         }
     }
+}
+
+function calculateRowsCountPerPage(schema: SchemaItem[][], height: number) {
+    const rows = schema.length;
+    let count = 0;
+    for (let i = 0; i < rows; i += height) {
+        count++;
+    }
+    return count;
+}
+
+function calculateColumnsCountPerPage(schema: SchemaItem[][], width: number) {
+    const cols = Math.max(schema[0].length, schema[1].length);
+    let count = 0;
+    for (let j = 0; j < cols; j += width) {
+        count++;
+    }
+    return count;
+}
+
+function cutSchemaIntoPages(schema: SchemaItem[][], bead: ProjectTypeSetting, height: number, width: number) {
+    const rows = schema.length;
+    const cols = Math.max(schema[0].length, schema[1].length);
+
+    const submatrices = [];
+    let pageNumber = 0;
+    let sliceNumber = 0;
+    for (let i = 0; i < rows; i += height) {
+        sliceNumber = 0;
+        for (let j = 0; j < cols; j += width) {
+            const submatrix = schema
+                .slice(i, i + height)
+                .map(row => row
+                    .slice(j, j + width)
+                    .map(slice => ({
+                        ...slice,
+                        x: slice.x - sliceNumber * bead.width,
+                        y: slice.y - pageNumber * bead.height,
+                    }))
+                );
+            submatrices.push(submatrix);
+            sliceNumber++;
+        }
+        pageNumber++;
+    }
+    return {
+        pages: submatrices,
+        totalRows: pageNumber,
+        totalCols: sliceNumber,
+    };
 }
 
 function calculateScaleBetweenOneAndTwo(columnsCount: number, beadWidth: number, scale = 10): number {
     if (scale === 20) return 0.5;
     const rowLength = columnsCount * beadWidth / (scale / 10);
-    if (rowLength > pdfDocument.PRINT_WIDTH) return calculateScaleBetweenOneAndTwo(columnsCount, beadWidth, scale + 1);
+    if (rowLength > pdfDocument.getPrintWidth()) return calculateScaleBetweenOneAndTwo(columnsCount, beadWidth, scale + 1);
     else return 1 / (scale / 10);
 }
 
 function calculateLeftOffset(schema: SchemaItem[][], width: number): number {
     const beadsInRow = Math.max(schema[0].length, schema[1].length);
     let offset = (pdfDocument.WIDTH - beadsInRow * width) / 2;
-    if (offset <= pdfDocument.MARGIN_LEFT) offset = pdfDocument.MARGIN_LEFT;
+    if (offset >= pdfDocument.MARGIN_LEFT) offset = pdfDocument.MARGIN_LEFT;
     return offset;
 }
 
@@ -117,7 +201,8 @@ function getBeadsSize(schema: SchemaItem[][], type: ProjectTypeEnum): ProjectTyp
 }
 
 function addNewPage(doc: Doc, options: { currentPage: number; totalPages: number; }) {
-    doc.addPage()
+    doc
+        .addPage()
         .fontSize(pdfOptions.SITE_MARK_FONT)
         .fillColor(pdfOptions.BLACK_COLOR)
         .text(`${options.currentPage + 1} / ${options.totalPages + 1}`,
