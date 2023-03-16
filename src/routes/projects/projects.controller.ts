@@ -67,10 +67,10 @@ export class ProjectsController {
             backgroundColor: body.backgroundColor,
             userId: session.userId
         }, transaction);
-        const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
-        const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
-        await project.update({ previewId: file.id }, { transaction });
-        await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
+        // const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
+        // const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
+        // await project.update({ previewId: file.id }, { transaction });
+        // await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
 
         return new ProjectMetadataDto(project);
     }
@@ -93,8 +93,8 @@ export class ProjectsController {
             colormap: JSON.stringify(body.colormap),
         }, transaction);
         project = await this.projectsService.getDetails(id, transaction);
-        const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
-        await this.supabaseService.updateFileInStorage(preview, session.userId, `${project.preview.name}.${getFileType(project.preview.type)}`);
+        // const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
+        // await this.supabaseService.updateFileInStorage(preview, session.userId, `${project.preview.name}.${getFileType(project.preview.type)}`);
 
         return new ProjectSchemaDto(project);
     }
