@@ -86,18 +86,35 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
             if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : 0;
             for (let x = 0; x < page[y].length; x++) {
                 if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
-                const xPosition = x * bead.width;
-                const yPosition = y * bead.height;
+                const xPosition = x * bead.width + pdfDocument.MARGIN_LEFT + xShift;
+                const yPosition = y * bead.height + pdfDocument.MARGIN_TOP + yShift;
                 const color = page[y][x].filled ? page[y][x].color : backgroundColor;
+                const lineWidth = 0.5;
                 doc
-                    .lineWidth(0.5)
+                    .lineWidth(lineWidth)
                     .rect(
-                        pdfDocument.MARGIN_LEFT + xPosition + xShift,
-                        pdfDocument.MARGIN_TOP + yPosition + yShift,
-                        bead.width,
-                        bead.height
+                        xPosition,
+                        yPosition,
+                        bead.width - lineWidth,
+                        bead.height - lineWidth
                     )
-                    .fillAndStroke(color, pdfOptions.BLACK_COLOR);
+                    .fillAndStroke(color, convertToBlackOrWhite(color, { black: '#3B3B3B', white: '#AEAEAE' }));
+
+                if (page[y][x].filled) {
+                    const number = page[y][x].number.toString();
+                    const numberPositionX = xPosition + getCenteredPositionOfText(doc, number, pdfOptions.PAGE_NUMBER_FONT, bead.width);
+                    const numberPositionY = yPosition + getMiddledPositionOfText(doc, number, pdfOptions.PAGE_NUMBER_FONT, bead.height);
+
+                    doc
+                        .fontSize(pdfOptions.PAGE_NUMBER_FONT)
+                        .fillColor(convertToBlackOrWhite(color))
+                        .text(
+                            number,
+                            numberPositionX,
+                            numberPositionY,
+                            { lineBreak: false, }
+                        );
+                }
             }
         }
     }
@@ -105,7 +122,7 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
 
 function createNewSchemaPageWithInfo(doc: Doc, options) {
     let text = `Частина: ${options.rowsCounter}/${options.totalRows}`;
-    if (options.totalCols) text += `Сторінка: ${options.colsCounter}/${options.totalCols}`;
+    if (options.totalCols) text += `, Сторінка: ${options.colsCounter}/${options.totalCols}`;
 
     doc
         .addPage()
@@ -129,7 +146,7 @@ function cutSchemaIntoPages(schema: SchemaItem[][], bead: ProjectTypeSetting, he
     const rows = schema.length;
     const cols = Math.max(schema[0].length, schema[1].length);
 
-    const submatrices = [];
+    const submatrices: SchemaItem[][][] = [];
     let pageNumber = 0;
     let sliceNumber = 0;
     for (let i = 0; i < rows; i += height) {
@@ -182,21 +199,21 @@ function addInfoPage(doc: Doc, options: { username: string, projectName: string;
     doc.addPage()
         .font('Roboto-Medium')
         .fontSize(pdfOptions.TITLE_FONT)
-        .text(options.projectName, getCenteredPositionOfText(doc, options.projectName, pdfOptions.TITLE_FONT), 100)
+        .text(options.projectName, getCenteredPositionOfText(doc, options.projectName, pdfOptions.TITLE_FONT, pdfDocument.WIDTH), 100)
         .font('Roboto-Regular')
         .fontSize(pdfOptions.SUBTITLE_FONT)
         .moveDown()
-        .text(byUser, getCenteredPositionOfText(doc, byUser, pdfOptions.SUBTITLE_FONT))
+        .text(byUser, getCenteredPositionOfText(doc, byUser, pdfOptions.SUBTITLE_FONT, pdfDocument.WIDTH))
         .moveDown()
         .moveDown()
-        .text(fromSite, getCenteredPositionOfText(doc, fromSite, pdfOptions.SUBTITLE_FONT))
-        .text(siteURL, getCenteredPositionOfText(doc, siteURL, pdfOptions.SUBTITLE_FONT), null, { link: process.env.SITE_URL, underline: true, oblique: true });
+        .text(fromSite, getCenteredPositionOfText(doc, fromSite, pdfOptions.SUBTITLE_FONT, pdfDocument.WIDTH))
+        .text(siteURL, getCenteredPositionOfText(doc, siteURL, pdfOptions.SUBTITLE_FONT, pdfDocument.WIDTH), null, { link: process.env.SITE_URL, underline: true, oblique: true });
 
     if (process.env.SUPPORT_US_URL && process.env.SUPPORT_US_URL !== '') {
         doc
             .moveDown()
-            .text(supportUsMessage, getCenteredPositionOfText(doc, supportUsMessage, pdfOptions.SUBTITLE_FONT))
-            .text(process.env.SUPPORT_US_URL, getCenteredPositionOfText(doc, process.env.SUPPORT_US_URL, pdfOptions.SUBTITLE_FONT), null, { link: process.env.SUPPORT_US_URL, underline: true, oblique: true });
+            .text(supportUsMessage, getCenteredPositionOfText(doc, supportUsMessage, pdfOptions.SUBTITLE_FONT, pdfDocument.WIDTH))
+            .text(process.env.SUPPORT_US_URL, getCenteredPositionOfText(doc, process.env.SUPPORT_US_URL, pdfOptions.SUBTITLE_FONT, pdfDocument.WIDTH), null, { link: process.env.SUPPORT_US_URL, underline: true, oblique: true });
     }
 
     addSiteMark(doc);
@@ -204,7 +221,7 @@ function addInfoPage(doc: Doc, options: { username: string, projectName: string;
 
 function addSiteMark(doc: Doc) {
     const siteMark = process.env.SITE_MARK as string;
-    const textPosition = getCenteredPositionOfText(doc, siteMark, pdfOptions.SITE_MARK_FONT);
+    const textPosition = getCenteredPositionOfText(doc, siteMark, pdfOptions.SITE_MARK_FONT, pdfDocument.WIDTH);
 
     doc
         .fontSize(pdfOptions.SITE_MARK_FONT)
@@ -212,6 +229,17 @@ function addSiteMark(doc: Doc) {
         .text(siteMark, textPosition, pdfDocument.HEIGHT - pdfDocument.MARGIN_BOTTOM);
 }
 
-function getCenteredPositionOfText(doc: Doc, text: string, fontSize: number) {
-    return (pdfDocument.WIDTH / 2 - doc.fontSize(fontSize).widthOfString(text) / 2);
+function getCenteredPositionOfText(doc: Doc, text: string, fontSize: number, width: number) {
+    return width / 2 - doc.fontSize(fontSize).widthOfString(text) / 2;
+}
+
+function getMiddledPositionOfText(doc: Doc, text: string, fontSize: number, height: number) {
+    return height / 2 - doc.fontSize(fontSize).heightOfString(text) / 2;
+}
+
+function convertToBlackOrWhite(hex: string, options = { black: '#000000', white: '#FFFFFF' }): string {
+    const redNumber = parseInt(hex.slice(1, 3), 16),
+        greenNumber = parseInt(hex.slice(3, 5), 16),
+        blueNumber = parseInt(hex.slice(5, 7), 16);
+    return redNumber * 0.299 + greenNumber * 0.587 + blueNumber * 0.114 > 186 ? options.black : options.white;
 }
