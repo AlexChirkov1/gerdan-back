@@ -14,6 +14,8 @@ const pdfOptions = {
     SITE_MARK_FONT: 16,
     BLACK_COLOR: '#000000',
     WHITE_COLOR: '#ffffff',
+    GRAY_COLOR: '#808080',
+    PAGE_NUMBER_FONT: 10,
 };
 
 const pdfDocument = {
@@ -57,50 +59,29 @@ export async function createPDF(project: Project): Promise<void> {
 
 function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, backgroundColor: string) {
     const bead = getBeadsSize(schema, type);
-
     const beadsRowsPerPage = ~~(pdfDocument.getPrintHeight() / bead.height);
     const beadsColsPerPage = ~~(pdfDocument.getPrintWidth() / bead.width);
-    const totalPages = ~~(schema.length / beadsRowsPerPage);
     let xShift = 0;
     let yShift = 0;
-    const pageNumber = 0;
-
-    // const totalWidthInPixels = Math.max(schema[0].length, schema[1].length) * bead.width;
-    // const totalHeightInPixels = schema.length * bead.height;
-    // const chunkPagesCount = Math.ceil(pdfDocument.getPrintHeight() / bead.height) * bead.height;
-    // const chunkSlicesCount = Math.ceil(totalWidthInPixels / (pdfDocument.WIDTH - pdfDocument.MARGIN_LEFT - pdfDocument.MARGIN_RIGHT)) * bead.width;
-    console.log({
-        beadHeight: bead.height,
-        beadsColsPerPage,
-        beadsRowsPerPage,
-        // chunkPagesCount,
-        // chunkSlicesCount,
-        // totalHeightInPixels,
-        // PRINT_HEIGHT: pdfDocument.getPrintHeight(),
-        // beadHeightCount: (totalHeightInPixels / pdfDocument.getPrintHeight()) * bead.height
-    });
     const { pages, totalRows, totalCols } = cutSchemaIntoPages(schema, bead, beadsRowsPerPage, beadsColsPerPage);
-    // const maxColsCount = calculateColumnsCountPerPage(schema, beadsColsPerPage);
 
-    let i = 0;
+    let pageCounter = 0;
     let colsCounter = 0;
     let rowsCounter = 1;
     for (const page of pages) {
-        // const leftOffset = calculateLeftOffset(page, bead.width);
-        // const topOffset = calculateTopOffset(page, bead.height);
         for (let y = 0; y < page.length; y++) {
             if (!(y % beadsRowsPerPage)) {
-                doc.addPage();
                 if (colsCounter >= totalCols) {
                     colsCounter = 0;
                     rowsCounter++;
                 }
-                doc.fontSize(pdfOptions.SITE_MARK_FONT)
-                    .fillColor(pdfOptions.BLACK_COLOR)
-                    .text(`Сторінка: ${++i}/${pages.length}, Колонка: ${++colsCounter}/${totalCols}, Рядок: ${rowsCounter}/${totalRows}`,
-                        100,
-                        800
-                    );
+                createNewSchemaPageWithInfo(doc, {
+                    rowsCounter,
+                    totalRows,
+                    colsCounter: ++colsCounter,
+                    totalCols,
+                    pageCounter: ++pageCounter,
+                });
             }
             if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : 0;
             for (let x = 0; x < page[y].length; x++) {
@@ -122,22 +103,26 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
     }
 }
 
-function calculateRowsCountPerPage(schema: SchemaItem[][], height: number) {
-    const rows = schema.length;
-    let count = 0;
-    for (let i = 0; i < rows; i += height) {
-        count++;
-    }
-    return count;
-}
+function createNewSchemaPageWithInfo(doc: Doc, options) {
+    let text = `Частина: ${options.rowsCounter}/${options.totalRows}`;
+    if (options.totalCols) text += `Сторінка: ${options.colsCounter}/${options.totalCols}`;
 
-function calculateColumnsCountPerPage(schema: SchemaItem[][], width: number) {
-    const cols = Math.max(schema[0].length, schema[1].length);
-    let count = 0;
-    for (let j = 0; j < cols; j += width) {
-        count++;
-    }
-    return count;
+    doc
+        .addPage()
+        .fontSize(pdfOptions.PAGE_NUMBER_FONT)
+        .fillColor(pdfOptions.BLACK_COLOR)
+        .text(text,
+            pdfDocument.MARGIN_LEFT,
+            pdfDocument.HEIGHT - pdfDocument.MARGIN_BOTTOM
+        )
+        .fontSize(pdfOptions.PAGE_NUMBER_FONT)
+        .fillColor(pdfOptions.GRAY_COLOR)
+        .text(`${options.pageCounter}`,
+            pdfDocument.WIDTH - pdfDocument.MARGIN_RIGHT,
+            pdfDocument.HEIGHT - pdfDocument.MARGIN_BOTTOM
+        );
+
+    addSiteMark(doc);
 }
 
 function cutSchemaIntoPages(schema: SchemaItem[][], bead: ProjectTypeSetting, height: number, width: number) {
@@ -165,6 +150,7 @@ function cutSchemaIntoPages(schema: SchemaItem[][], bead: ProjectTypeSetting, he
         }
         pageNumber++;
     }
+
     return {
         pages: submatrices,
         totalRows: pageNumber,
@@ -179,36 +165,12 @@ function calculateScaleBetweenOneAndTwo(columnsCount: number, beadWidth: number,
     else return 1 / (scale / 10);
 }
 
-function calculateLeftOffset(schema: SchemaItem[][], width: number): number {
-    const beadsInRow = Math.max(schema[0].length, schema[1].length);
-    let offset = (pdfDocument.WIDTH - beadsInRow * width) / 2;
-    if (offset >= pdfDocument.MARGIN_LEFT) offset = pdfDocument.MARGIN_LEFT;
-    return offset;
-}
-
-function calculateTopOffset(schema: SchemaItem[][], height: number): number {
-    let offset = (pdfDocument.HEIGHT - schema.length * height) / 2;
-    if (offset <= pdfDocument.MARGIN_TOP) offset = pdfDocument.MARGIN_TOP;
-    return offset;
-}
-
 function getBeadsSize(schema: SchemaItem[][], type: ProjectTypeEnum): ProjectTypeSetting {
     const scaleFactor = calculateScaleBetweenOneAndTwo(Math.max(schema[0].length, schema[1].length), ProjectTypeSettings[type].width);
     return {
         width: ProjectTypeSettings[type].width * scaleFactor,
         height: ProjectTypeSettings[type].height * scaleFactor,
     };
-}
-
-function addNewPage(doc: Doc, options: { currentPage: number; totalPages: number; }) {
-    doc
-        .addPage()
-        .fontSize(pdfOptions.SITE_MARK_FONT)
-        .fillColor(pdfOptions.BLACK_COLOR)
-        .text(`${options.currentPage + 1} / ${options.totalPages + 1}`,
-            500,
-            800
-        );
 }
 
 function addInfoPage(doc: Doc, options: { username: string, projectName: string; }) {
@@ -247,7 +209,7 @@ function addSiteMark(doc: Doc) {
     doc
         .fontSize(pdfOptions.SITE_MARK_FONT)
         .fillColor(pdfOptions.BLACK_COLOR)
-        .text(siteMark, textPosition, 800);
+        .text(siteMark, textPosition, pdfDocument.HEIGHT - pdfDocument.MARGIN_BOTTOM);
 }
 
 function getCenteredPositionOfText(doc: Doc, text: string, fontSize: number) {
