@@ -4,7 +4,7 @@ import { Project, ProjectTypeEnum } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { FontLoader } from 'src/utils/font_loader';
 import { SchemaItem } from './dtos/input_types';
-import { ProjectTypeSetting, ProjectTypeSettings } from './resources/project_type_settings';
+import { BeadSetting as ProjectTypeSetting, ProjectTypeSettings } from './resources/project_type_settings';
 
 type Doc = typeof PDFDocument;
 
@@ -68,9 +68,11 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
     let pageCounter = 0;
     let colsCounter = 0;
     let rowsCounter = 1;
+    let rowNumber = 1;
+    const indentationFromSchema = 20;
     for (const page of pages) {
-        for (let y = 0; y < page.length; y++) {
-            if (!(y % beadsRowsPerPage)) {
+        for (let row = 0; row < page.length; row++) {
+            if (!(row % beadsRowsPerPage)) {
                 if (colsCounter >= totalCols) {
                     colsCounter = 0;
                     rowsCounter++;
@@ -83,12 +85,26 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
                     pageCounter: ++pageCounter,
                 });
             }
-            if (type === ProjectTypeEnum.brick) xShift = y % 2 ? bead.width / 2 : 0;
-            for (let x = 0; x < page[y].length; x++) {
-                if (type === ProjectTypeEnum.peyote) yShift = x % 2 ? bead.height / 2 : yShift = 0;
-                const xPosition = x * bead.width + pdfDocument.MARGIN_LEFT + xShift;
-                const yPosition = y * bead.height + pdfDocument.MARGIN_TOP + yShift;
-                const color = page[y][x].filled ? page[y][x].color : backgroundColor;
+            
+            // side lines
+            const rowCountText = rowNumber.toString() + '.';
+            doc
+                .fontSize(pdfOptions.PAGE_NUMBER_FONT)
+                .fillColor(pdfOptions.GRAY_COLOR)
+                .text(
+                    rowCountText,
+                    pdfDocument.MARGIN_LEFT + getCenteredPositionOfText(doc, rowCountText, pdfOptions.PAGE_NUMBER_FONT, bead.width) - indentationFromSchema,
+                    row * bead.height + pdfDocument.MARGIN_TOP + yShift + getMiddledPositionOfText(doc, rowCountText, pdfOptions.PAGE_NUMBER_FONT, bead.height),
+                    { lineBreak: false, }
+                );
+            rowNumber++;
+
+            if (type === ProjectTypeEnum.brick) xShift = row % 2 ? bead.width / 2 : 0;
+            for (let col = 0; col < page[row].length; col++) {
+                if (type === ProjectTypeEnum.peyote) yShift = col % 2 ? bead.height / 2 : yShift = 0;
+                const xPosition = col * bead.width + pdfDocument.MARGIN_LEFT + xShift;
+                const yPosition = row * bead.height + pdfDocument.MARGIN_TOP + yShift;
+                const color = page[row][col].filled ? page[row][col].color : backgroundColor;
                 const lineWidth = 0.5;
                 doc
                     .lineWidth(lineWidth)
@@ -100,8 +116,8 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
                     )
                     .fillAndStroke(color, convertToBlackOrWhite(color, { black: '#3B3B3B', white: '#AEAEAE' }));
 
-                if (page[y][x].filled) {
-                    const number = page[y][x].number.toString();
+                if (page[row][col].filled) {
+                    const number = page[row][col].number.toString();
                     const numberPositionX = xPosition + getCenteredPositionOfText(doc, number, pdfOptions.PAGE_NUMBER_FONT, bead.width);
                     const numberPositionY = yPosition + getMiddledPositionOfText(doc, number, pdfOptions.PAGE_NUMBER_FONT, bead.height);
 

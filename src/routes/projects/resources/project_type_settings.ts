@@ -1,6 +1,6 @@
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 
-export type ProjectTypeSetting = {
+export type BeadSetting = {
     width: number;
     height: number;
 };

@@ -1,6 +1,7 @@
 import { createWriteStream } from 'fs';
 import * as PDFDocument from 'pdfkit';
 import { FontLoader } from 'src/utils/font_loader';
+import { half } from 'src/utils/half';
 import { BLACK } from './colors';
 import { GerdanOptions, PixelsGrid, Statistics } from './gerdan';
 
@@ -209,13 +210,13 @@ export class PDFBuilder {
     }
 
     private centeredPositionOfText(text: string, fontSize: number) {
-        return (PDFBuilder.docSize.width / 2 - this.doc.fontSize(fontSize).widthOfString(text) / 2);
+        return (half(PDFBuilder.docSize.width) - half(this.doc.fontSize(fontSize).widthOfString(text)));
     }
 
     private centeredPositionOfIndex(index: number, fontSize: number, x: number, y: number) {
         return [
-            x + (this.metadata.pixelSize - this.doc.fontSize(fontSize).widthOfString(index.toString())) / 2,
-            y + (this.metadata.pixelSize - this.doc.fontSize(fontSize).heightOfString(index.toString())) / 2
+            x + half(this.metadata.pixelSize - this.doc.fontSize(fontSize).widthOfString(index.toString())),
+            y + half(this.metadata.pixelSize - this.doc.fontSize(fontSize).heightOfString(index.toString()))
         ] as const;
     }
 

@@ -8,7 +8,7 @@ type SchemaItem = {
     x: number;
     y: number;
     filled: boolean;
-    colorFill?: string;
+    color?: string;
     number?: number;
 };
 
