@@ -1,0 +1,42 @@
+post:
+  operationId: get_project_pdf
+  security:
+    - bearer:
+        - "read:all"
+        - "write:all"
+  tags:
+    - projects
+  summary: Завантажити PDF
+  parameters:
+    - name: id
+      in: path
+      schema:
+        type: string
+        example: MjA
+      required: true
+  responses:
+    "200":
+      description: Created
+      content:
+        application/pdf:
+          schema:
+            type: string
+            format: binary
+    "401":
+      description: Unauthorized
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\unauthorized_error.yaml
+              - $ref: ..\..\errors\unauthorized.yaml
+    "404":
+      description: Not found
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\not_found_error.yaml
+              - $ref: ..\..\errors\project_not_found.yaml

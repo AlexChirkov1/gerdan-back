@@ -1,9 +1,9 @@
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 
-export type ProjectTypeSetting = {
-    width: number,
-    height: number
-}
+export type BeadSetting = {
+    width: number;
+    height: number;
+};
 
 export const ProjectTypeSettings = {
     [ProjectTypeEnum.loom]: {

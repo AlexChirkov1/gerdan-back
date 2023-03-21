@@ -17,13 +17,16 @@ export class FileStorageHelper {
         let file: Buffer;
 
         for (let attempts = 0; attempts < maxAttempts; attempts++) {
-            if (!existsSync(path)) { await sleep(SLEEP_TIME); continue; }
+            if (!existsSync(path)) {
+                await sleep(SLEEP_TIME);
+                continue;
+            }
             file = await readFile(path);
             break;
         }
 
         if (file) await unlink(path);
-        
+
         return file;
     }
 

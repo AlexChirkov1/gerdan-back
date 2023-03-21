@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Response } from 'express';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
@@ -15,10 +16,14 @@ import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { SupabaseService } from 'src/services/supabase/supabase.service';
 import { BucketService } from '../bucket/bucket.service';
+import { PDFOptionsInput } from '../gerdans/dtos/input_types';
+import { PDFOptionsSchema } from '../gerdans/schemas/pdf_options.schema';
 import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
+import { createPDF } from './pdfv1';
+import { makePdfDocument } from './pdf_maker';
 import { createPreview } from './preview';
 import { ProjectsService } from './projects.service';
 import { ProjectSchema } from './schemas/project.schema';
@@ -129,5 +134,44 @@ export class ProjectsController {
             await this.bucketService.destroyFile(project.previewId, transaction);
         }
         await project.destroy({ transaction });
+    }
+
+    @Post(':id/pdf')
+    @Auth()
+    @ValidateSchema(PDFOptionsSchema)
+    async getPDF(
+        @SequelizeTransaction() transaction: Transaction,
+        @UserSession() session: UserSessionData,
+        @Param('id', Base10Pipe) id: string,
+        @Query() query: PDFOptionsInput,
+        @Res() res: Response,
+    ) {
+
+        // TODO: move to helpers
+        if (query.numbers && typeof query.numbers === 'string') {
+            switch (query.numbers) {
+                case 'true': {
+                    query.numbers = true;
+                    break;
+                }
+                case 'false': {
+                    query.numbers = false;
+                    break;
+                }
+                default: {
+                    query.numbers = true;
+                }
+            }
+        } else {
+            query.numbers = true;
+        }
+
+        let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
+        if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
+        project = await this.projectsService.getDetails(id, transaction);
+        // const file = await createPDF(project);
+        const file = await makePdfDocument(project);
+        console.log(file);
+        res.status(201).send(file);
     }
 }
