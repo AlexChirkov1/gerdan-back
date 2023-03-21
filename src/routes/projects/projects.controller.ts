@@ -170,7 +170,6 @@ export class ProjectsController {
         project = await this.projectsService.getDetails(id, transaction);
         // const file = await createPDF(project);
         const file = await makePdfDocument(project);
-        console.log(file);
         res.status(201).send(file);
     }
 }

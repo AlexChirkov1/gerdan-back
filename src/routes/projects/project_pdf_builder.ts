@@ -93,7 +93,7 @@ export class ProjectPDFBuilder {
 
     public addSliceInfo(currentRow: number, totalRows: number, currentCol: number, totalCols: number) {
         let text = `Частина: ${currentRow}/${totalRows}`;
-        if (totalCols) text += `, Сторінка: ${currentCol}/${totalCols}`;
+        if (totalCols > 1) text += `, Сторінка: ${currentCol}/${totalCols}`;
 
         this.doc
             .fontSize(this.FONTS.SCHEMA_NUMBER)

@@ -87,7 +87,7 @@ export async function makePdfDocument(project: Project) {
         }
     }
     builder.endPipe();
-    return await FileStorageHelper.extractFile(filePath);
+    // return await FileStorageHelper.extractFile(filePath);
 }
 
 function getScaledBeadsSize(type: ProjectTypeEnum): BeadSetting {
