@@ -22,7 +22,6 @@ import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
-import { createPDF } from './pdfv1';
 import { makePdfDocument } from './pdf_maker';
 import { createPreview } from './preview';
 import { ProjectsService } from './projects.service';
@@ -72,10 +71,10 @@ export class ProjectsController {
             backgroundColor: body.backgroundColor,
             userId: session.userId
         }, transaction);
-        // const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
-        // const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
-        // await project.update({ previewId: file.id }, { transaction });
-        // await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
+        const preview = createPreview(project);
+        const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
+        await project.update({ previewId: file.id }, { transaction });
+        await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
 
         return new ProjectMetadataDto(project);
     }
@@ -98,8 +97,8 @@ export class ProjectsController {
             colormap: JSON.stringify(body.colormap),
         }, transaction);
         project = await this.projectsService.getDetails(id, transaction);
-        // const preview = createPreview(JSON.parse(project.schema), project.type, project.backgroundColor);
-        // await this.supabaseService.updateFileInStorage(preview, session.userId, `${project.preview.name}.${getFileType(project.preview.type)}`);
+        const preview = createPreview(project);
+        await this.supabaseService.updateFileInStorage(preview, session.userId, `${project.preview.name}.${getFileType(project.preview.type)}`);
 
         return new ProjectSchemaDto(project);
     }
