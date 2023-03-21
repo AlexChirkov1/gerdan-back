@@ -30,6 +30,8 @@ paths:
     $ref: api/projects/projects.yaml
   /projects/{id}:
     $ref: api/projects/project.yaml
+  /projects/{id}/pdf:
+    $ref: api/projects/pdf.yaml
 components:
   securitySchemes:
     bearer:

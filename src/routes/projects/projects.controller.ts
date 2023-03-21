@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Response } from 'express';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
 import { Auth } from 'src/auth/guards';
@@ -135,7 +136,7 @@ export class ProjectsController {
         await project.destroy({ transaction });
     }
 
-    @Get(':id/pdf')
+    @Post(':id/pdf')
     @Auth()
     @ValidateSchema(PDFOptionsSchema)
     async getPDF(
@@ -143,7 +144,7 @@ export class ProjectsController {
         @UserSession() session: UserSessionData,
         @Param('id', Base10Pipe) id: string,
         @Query() query: PDFOptionsInput,
-        // @Res() res: Response,
+        @Res() res: Response,
     ) {
 
         // TODO: move to helpers
@@ -170,6 +171,7 @@ export class ProjectsController {
         project = await this.projectsService.getDetails(id, transaction);
         // const file = await createPDF(project);
         const file = await makePdfDocument(project);
-        // res.status(201);//.send(file);
+        console.log(file);
+        res.status(201).send(file);
     }
 }

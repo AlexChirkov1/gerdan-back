@@ -1,4 +1,4 @@
-import { Colormap, Project, ProjectTypeEnum, Schema } from 'src/database/models/project.model';
+import { Project, ProjectTypeEnum, Schema } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { half } from 'src/utils/half';
 import { SchemaItem } from './dtos/input_types';
@@ -7,8 +7,8 @@ import { BeadSetting, ProjectTypeSettings } from './resources/project_type_setti
 
 export async function makePdfDocument(project: Project) {
     const builder = new ProjectPDFBuilder(project.name, project.author.username);
-
-    builder.pipeTo(FileStorageHelper.prepareFilePathToTempFolder(`${project.author.username}-${project.name}`, 'pdf'));
+    const filePath = FileStorageHelper.prepareFilePathToTempFolder(`${project.author.username}-${project.name}`, 'pdf');
+    builder.pipeTo(filePath);
     builder.addInfoPage(project.name, project.author.username);
 
     const parsedSchema: Schema = JSON.parse(project.schema);
@@ -86,10 +86,8 @@ export async function makePdfDocument(project: Project) {
             }
         }
     }
-
-
-
     builder.endPipe();
+    return await FileStorageHelper.extractFile(filePath);
 }
 
 function getScaledBeadsSize(type: ProjectTypeEnum): BeadSetting {
