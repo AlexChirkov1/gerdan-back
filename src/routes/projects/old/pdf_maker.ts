@@ -1,9 +1,9 @@
 import { Project, ProjectTypeEnum, Schema } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { half } from 'src/utils/half';
-import { SchemaItem } from './dtos/input_types';
+import { SchemaItem } from '../dtos/input_types';
+import { BeadSetting, ProjectTypeSettings } from '../resources/bead';
 import { ProjectPDFBuilder } from './project_pdf_builder';
-import { BeadSetting, ProjectTypeSettings } from './resources/project_type_settings';
 
 export async function makePdfDocument(project: Project) {
     const builder = new ProjectPDFBuilder(project.name, project.author.username);
@@ -57,7 +57,7 @@ function makeBrickInstruction(builder: ProjectPDFBuilder, schema: Schema) {
             y += lineSpacing;
             x = minX;
         }
-        for (let col = schema[row].length; col > schema[row].length; col--) { 
+        for (let col = schema[row].length; col > schema[row].length; col--) {
             if (!schema[row][col].filled) continue;
             if (col % 2) {
                 builder.drawBead(x, y, bead.width, bead.height, schema[row][col].color);

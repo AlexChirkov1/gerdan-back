@@ -22,7 +22,7 @@ import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
-import { makePdfDocument } from './pdf_maker';
+import { makePdfDocument } from './old/pdf_maker';
 import { createPreview } from './preview';
 import { ProjectsService } from './projects.service';
 import { ProjectSchema } from './schemas/project.schema';

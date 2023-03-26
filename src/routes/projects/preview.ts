@@ -1,7 +1,7 @@
 import { createCanvas } from 'canvas';
 import { Project, ProjectTypeEnum, Schema } from 'src/database/models/project.model';
 import { half } from 'src/utils/half';
-import { ProjectTypeSettings } from './resources/project_type_settings';
+import { ProjectTypeSettings } from './resources/bead';
 
 export function createPreview(project: Project): Buffer {
     if (!project.schema) return createBlankPreview(project.backgroundColor);
