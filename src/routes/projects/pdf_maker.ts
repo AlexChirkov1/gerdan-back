@@ -14,7 +14,135 @@ export async function makePdfDocument(project: Project) {
     const parsedSchema: Schema = JSON.parse(project.schema);
     builder.addStatistics(parsedSchema);
 
-    const bead = getScaledBeadsSize(project.type);
+    drawSchema(builder, parsedSchema, project.type, project.backgroundColor);
+    makeInstruction(builder, parsedSchema, project.type);
+
+    builder.endPipe();
+    // return await FileStorageHelper.extractFile(filePath);
+}
+
+function makeInstruction(builder: ProjectPDFBuilder, schema: Schema, type: ProjectTypeEnum) {
+    // пейот + брік
+    // 1. перший рядок повністю
+    // 2. другий рядок через один (перша половина) в обратному порядку поштучно
+    // 3. другий рядок через один (друга половина)
+    // 4. повторити 2 крок
+    return makeBrickInstruction(builder, schema);
+    if (type === ProjectTypeEnum.grid || type === ProjectTypeEnum.loom) return makeGridInstruction(builder, schema);
+}
+
+function makeBrickInstruction(builder: ProjectPDFBuilder, schema: Schema) {
+    const bead = getScaledBeadsSize(ProjectTypeEnum.brick);
+
+    const initialY = builder.SIZES.MARGIN_TOP + builder.FONTS.SUBTITLE;
+    const initialX = builder.SIZES.MARGIN_LEFT as number;
+    const maxY = builder.SIZES.HEIGHT - builder.SIZES.MARGIN_BOTTOM;
+    const maxX = builder.SIZES.WIDTH - builder.SIZES.MARGIN_RIGHT;
+    let x = initialX;
+    let y = initialY;
+    const letterSpacing = 2;
+    const lineSpacing = 14;
+    const minX = 110;
+
+    builder.addPage();
+    for (let col = 0; col < schema[0].length; col++) {
+        if (!schema[0][col].filled) continue;
+        builder.drawBead(x, y, bead.width, bead.height, schema[0][col].color);
+        builder.writeBeadColorNumber(x, y, bead.width, bead.height, schema[0][col].number.toString(), schema[0][col].color);
+        x += bead.width + letterSpacing;
+    }
+
+    for (let row = 1; row < schema.length; row++) {
+        if (x >= maxX) {
+            y += lineSpacing;
+            x = minX;
+        }
+        for (let col = schema[row].length; col > schema[row].length; col--) { 
+            if (!schema[row][col].filled) continue;
+            if (col % 2) {
+                builder.drawBead(x, y, bead.width, bead.height, schema[row][col].color);
+                builder.writeBeadColorNumber(x, y, bead.width, bead.height, schema[row][col].number.toString(), schema[row][col].color);
+                x += bead.width + letterSpacing;
+            }
+        }
+        for (let col = 0; col < schema[row].length; col++) {
+            if (!schema[row][col].filled) continue;
+            if (!(col % 2)) {
+                builder.drawBead(x, y, bead.width, bead.height, schema[row][col].color);
+                builder.writeBeadColorNumber(x, y, bead.width, bead.height, schema[row][col].number.toString(), schema[row][col].color);
+                x += bead.width + letterSpacing;
+            }
+        }
+    }
+}
+
+function makeGridInstruction(builder: ProjectPDFBuilder, schema: Schema) {
+    const linesMetadata = [];
+    for (let row = 0; row < schema.length; row++) linesMetadata.push(countAndGroupConsecutiveColors(schema[row]));
+
+    const bead = getScaledBeadsSize(ProjectTypeEnum.brick);
+
+    const initialY = builder.SIZES.MARGIN_TOP + builder.FONTS.SUBTITLE;
+    const initialX = builder.SIZES.MARGIN_LEFT as number;
+    const maxY = builder.SIZES.HEIGHT - builder.SIZES.MARGIN_BOTTOM;
+    const maxX = builder.SIZES.WIDTH - builder.SIZES.MARGIN_RIGHT;
+    let x = initialX;
+    let y = initialY;
+    const letterSpacing = 2;
+    const lineSpacing = 14;
+    const minX = 110;
+    builder.addPage();
+    for (let row = 0; row < linesMetadata.length; row++) {
+        if (y >= maxY) {
+            y = initialY;
+            builder.addPage();
+        }
+        const newRowText = `${row + 1} ряд: `;
+        builder.doc.fontSize(builder.FONTS.SCHEMA_NUMBER)
+            .fillColor(builder.COLORS.BLACK)
+            .text(newRowText, x, y, { lineBreak: false, });
+        x = minX;
+        for (let col = 0; col < linesMetadata[row].length; col++) {
+            if (x >= maxX) {
+                y += lineSpacing;
+                x = minX;
+            }
+            const text = `${linesMetadata[row][col].count} шт.`;
+            builder.drawBead(x, y, bead.width, bead.height, linesMetadata[row][col].color);
+            builder.writeBeadColorNumber(x, y, bead.width, bead.height, linesMetadata[row][col].number.toString(), linesMetadata[row][col].color);
+            x += bead.width + letterSpacing;
+            builder.doc.fontSize(builder.FONTS.SCHEMA_NUMBER)
+                .fillColor(builder.COLORS.BLACK)
+                .text(text, x, y, { lineBreak: false, });
+            x += builder.getWidthOfText(text, builder.FONTS.SCHEMA_NUMBER) + letterSpacing;
+        }
+        y += lineSpacing;
+        x = initialX;
+    }
+}
+
+function countAndGroupConsecutiveColors(row: SchemaItem[]) {
+    const result = [];
+    let color = null;
+    let count = 0;
+    let number = null;
+    for (let col = 0; col < row.length; col++) {
+        const newColor = row[col].filled && row[col].color;
+        const sameColor = newColor === color;
+        if (!sameColor && color) result.push({ color, count, number });
+        if (!sameColor) {
+            color = newColor;
+            count = 0;
+            number = row[col].number;
+        }
+        if (color) count++;
+    }
+    if (color) result.push({ color, count, number });
+    return result;
+}
+
+function drawSchema(builder: ProjectPDFBuilder, parsedSchema: Schema, type: ProjectTypeEnum, backgroundColor: string) {
+    const bead = getScaledBeadsSize(type);
     const beadsRowsPerPage = ~~(builder.printHeight / bead.height);
     const beadsColsPerPage = ~~(builder.printWidth / bead.width);
     const cut = cutSchemaIntoSlices(parsedSchema, bead, beadsRowsPerPage, beadsColsPerPage);
@@ -27,7 +155,7 @@ export async function makePdfDocument(project: Project) {
     const halfBeadHeight = half(bead.height);
     for (const slice of cut.slices) {
         for (let row = 0; row < slice.length; row++) {
-            if (project.type === ProjectTypeEnum.brick) xShift = row % 2 ? halfBeadWidth : 0;
+            if (type === ProjectTypeEnum.brick) xShift = row % 2 ? halfBeadWidth : 0;
 
             const beadsOutOfPageHeight = !(row % beadsRowsPerPage);
             if (beadsOutOfPageHeight) {
@@ -77,17 +205,15 @@ export async function makePdfDocument(project: Project) {
             // }
 
             for (let col = 0; col < slice[row].length; col++) {
-                if (project.type === ProjectTypeEnum.peyote) yShift = col % 2 ? halfBeadHeight : yShift = 0;
+                if (type === ProjectTypeEnum.peyote) yShift = col % 2 ? halfBeadHeight : yShift = 0;
                 const x = col * bead.width + builder.SIZES.MARGIN_LEFT + xShift;
                 const y = row * bead.height + builder.SIZES.MARGIN_TOP + yShift;
-                const color = slice[row][col].filled ? slice[row][col].color : project.backgroundColor;
+                const color = slice[row][col].filled ? slice[row][col].color : backgroundColor;
                 builder.drawBead(x, y, bead.width, bead.height, color);
                 if (slice[row][col].filled) builder.writeBeadColorNumber(x, y, bead.width, bead.height, slice[row][col].number.toString(), color);
             }
         }
     }
-    builder.endPipe();
-    // return await FileStorageHelper.extractFile(filePath);
 }
 
 function getScaledBeadsSize(type: ProjectTypeEnum): BeadSetting {

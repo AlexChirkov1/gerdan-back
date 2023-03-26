@@ -5,7 +5,7 @@ import { FontLoader } from 'src/utils/font_loader';
 import { half } from 'src/utils/half';
 
 export class ProjectPDFBuilder {
-    private doc: typeof PDFDocument;
+    doc: typeof PDFDocument;
     SIZES = {
         WIDTH: 595.28,
         HEIGHT: 841.89,
@@ -88,7 +88,7 @@ export class ProjectPDFBuilder {
         this.doc
             .fontSize(this.FONTS.SCHEMA_NUMBER)
             .fillColor(this.COLORS.GRAY)
-            .text(this.pageCounter.toString(), this.SIZES.WIDTH - this.SIZES.MARGIN_RIGHT, this.SIZES.HEIGHT - this.SIZES.MARGIN_BOTTOM);
+            .text(this.pageCounter.toString(), this.SIZES.WIDTH - this.SIZES.MARGIN_RIGHT, this.SIZES.HEIGHT - this.SIZES.MARGIN_BOTTOM + 10);
     }
 
     public addSliceInfo(currentRow: number, totalRows: number, currentCol: number, totalCols: number) {
@@ -98,7 +98,7 @@ export class ProjectPDFBuilder {
         this.doc
             .fontSize(this.FONTS.SCHEMA_NUMBER)
             .fillColor(this.COLORS.BLACK)
-            .text(text, this.SIZES.MARGIN_LEFT, this.SIZES.HEIGHT - this.SIZES.MARGIN_BOTTOM);
+            .text(text, this.SIZES.MARGIN_LEFT, this.SIZES.HEIGHT - this.SIZES.MARGIN_BOTTOM + 10);
     }
 
     public addSiteMark() {
@@ -108,7 +108,7 @@ export class ProjectPDFBuilder {
         this.doc
             .fontSize(this.FONTS.SITE_MARK)
             .fillColor(this.COLORS.BLACK)
-            .text(siteMark, textPosition, this.SIZES.HEIGHT - this.SIZES.MARGIN_BOTTOM);
+            .text(siteMark, textPosition, this.SIZES.HEIGHT - this.SIZES.MARGIN_BOTTOM + 10);
     }
 
     public addStatistics(schema: Schema) {
