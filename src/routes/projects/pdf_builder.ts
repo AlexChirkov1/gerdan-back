@@ -16,9 +16,9 @@ export class PDFBuilder {
         MARGIN_BOTTOM: 37.8,
     } as const;
     FONT_SIZE = {
-        TITLE: 24,
-        SUBTITLE: 16,
-        PRIMARY: 16,
+        TITLE: 20,
+        SUBTITLE: 14,
+        PRIMARY: 14,
         SECONDARY: 8,
         PAGE_NUMBER: 8,
     } as const;
@@ -80,17 +80,17 @@ export class PDFBuilder {
     public endPipe() { this.doc.end(); }
 
     public setFontSize(fontSize: typeof this.FONT_SIZE[keyof typeof this.FONT_SIZE]) {
-        this.settings.fontSize = this.FONT_SIZE[fontSize];
+        this.settings.fontSize = fontSize;
         this.doc.fontSize(this.settings.fontSize);
         return this;
     }
     public setFont(font: typeof this.FONT[keyof typeof this.FONT]) {
-        this.settings.font = this.FONT[font];
+        this.settings.font = font;
         this.doc.font(this.settings.font);
         return this;
     }
-    public setColor(color: typeof this.COLOR[keyof typeof this.COLOR]) {
-        this.settings.color = this.COLOR[color];
+    public setColor(color: string) {
+        this.settings.color = color;
         this.doc.fillColor(this.settings.color);
         return this;
     }
@@ -109,12 +109,12 @@ export class PDFBuilder {
 
     public addPage() {
         this.doc.addPage();
-        this.pageCounter++;
         if (this.pageCounter === 0) return this;
         this.doc
             .fontSize(this.FONT_SIZE.PAGE_NUMBER)
             .fillColor(this.COLOR.GRAY)
-            .text(this.pageCounter.toString(), this.PADDING.RIGHT, this.PADDING.BOTTOM);
+            .text((++this.pageCounter).toString(), this.PADDING.RIGHT, this.PADDING.BOTTOM)
+            .fillColor(this.settings.color);
         return this;
     }
 

@@ -2,7 +2,7 @@ import { Project, ProjectTypeEnum, Schema } from 'src/database/models/project.mo
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { half } from 'src/utils/half';
 import { SchemaItem } from '../dtos/input_types';
-import { BeadSetting, ProjectTypeSettings } from '../resources/bead';
+import { Bead, BeadSettings } from '../resources/bead';
 import { ProjectPDFBuilder } from './project_pdf_builder';
 
 export async function makePdfDocument(project: Project) {
@@ -28,7 +28,6 @@ function makeInstruction(builder: ProjectPDFBuilder, schema: Schema, type: Proje
     // 3. другий рядок через один (друга половина)
     // 4. повторити 2 крок
     return makeBrickInstruction(builder, schema);
-    if (type === ProjectTypeEnum.grid || type === ProjectTypeEnum.loom) return makeGridInstruction(builder, schema);
 }
 
 function makeBrickInstruction(builder: ProjectPDFBuilder, schema: Schema) {
@@ -216,15 +215,15 @@ function drawSchema(builder: ProjectPDFBuilder, parsedSchema: Schema, type: Proj
     }
 }
 
-function getScaledBeadsSize(type: ProjectTypeEnum): BeadSetting {
+function getScaledBeadsSize(type: ProjectTypeEnum): Bead {
     const scaleFactor = 0.5;
     return {
-        width: ProjectTypeSettings[type].width * scaleFactor,
-        height: ProjectTypeSettings[type].height * scaleFactor,
+        width: BeadSettings[type].width * scaleFactor,
+        height: BeadSettings[type].height * scaleFactor,
     };
 }
 
-function cutSchemaIntoSlices(schema: SchemaItem[][], bead: BeadSetting, rowsPerSlice: number, colsPerSlice: number) {
+function cutSchemaIntoSlices(schema: SchemaItem[][], bead: Bead, rowsPerSlice: number, colsPerSlice: number) {
     const rows = schema.length;
     const cols = Math.max(schema[0].length, schema[1].length);
 
@@ -243,7 +242,7 @@ function cutSchemaIntoSlices(schema: SchemaItem[][], bead: BeadSetting, rowsPerS
     return { slices, totalRows, totalCols };
 }
 
-function sliceSchema(schema: SchemaItem[][], bead: BeadSetting, currentRow: number, totalRows: number, currentCol: number, totalCols: number) {
+function sliceSchema(schema: SchemaItem[][], bead: Bead, currentRow: number, totalRows: number, currentCol: number, totalCols: number) {
     return schema
         .slice(currentRow, currentRow + totalRows)
         .map(row => row

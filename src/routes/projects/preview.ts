@@ -1,7 +1,7 @@
 import { createCanvas } from 'canvas';
 import { Project, ProjectTypeEnum, Schema } from 'src/database/models/project.model';
 import { half } from 'src/utils/half';
-import { ProjectTypeSettings } from './resources/bead';
+import { BeadSettings } from './resources/bead';
 
 export function createPreview(project: Project): Buffer {
     if (!project.schema) return createBlankPreview(project.backgroundColor);
@@ -10,8 +10,8 @@ export function createPreview(project: Project): Buffer {
     const width = Math.max(parsedSchema[0].length, parsedSchema[1].length);
     const height = parsedSchema.length;
     const bead = {
-        width: ProjectTypeSettings[project.type].width / SCALE,
-        height: ProjectTypeSettings[project.type].height / SCALE,
+        width: BeadSettings[project.type].width / SCALE,
+        height: BeadSettings[project.type].height / SCALE,
     };
     const halfBeadWidth = half(bead.width);
     const halfBeadHeight = half(bead.height);

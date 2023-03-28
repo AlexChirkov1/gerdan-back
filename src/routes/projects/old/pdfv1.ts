@@ -3,8 +3,8 @@ import * as PDFDocument from 'pdfkit';
 import { Project, ProjectTypeEnum } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { FontLoader } from 'src/utils/font_loader';
-import { SchemaItem } from './dtos/input_types';
-import { BeadSetting as ProjectTypeSetting, ProjectTypeSettings } from './resources/project_type_settings';
+import { SchemaItem } from '../dtos/input_types';
+import { Bead, BeadSettings } from '../resources/bead';
 
 type Doc = typeof PDFDocument;
 
@@ -85,7 +85,7 @@ function addSchemaPage(doc: Doc, schema: SchemaItem[][], type: ProjectTypeEnum, 
                     pageCounter: ++pageCounter,
                 });
             }
-            
+
             // side lines
             const rowCountText = rowNumber.toString() + '.';
             doc
@@ -158,7 +158,7 @@ function createNewSchemaPageWithInfo(doc: Doc, options) {
     addSiteMark(doc);
 }
 
-function cutSchemaIntoPages(schema: SchemaItem[][], bead: ProjectTypeSetting, height: number, width: number) {
+function cutSchemaIntoPages(schema: SchemaItem[][], bead: Bead, height: number, width: number) {
     const rows = schema.length;
     const cols = Math.max(schema[0].length, schema[1].length);
 
@@ -198,11 +198,11 @@ function calculateScaleBetweenOneAndTwo(columnsCount: number, beadWidth: number,
     else return 1 / (scale / 10);
 }
 
-function getBeadsSize(schema: SchemaItem[][], type: ProjectTypeEnum): ProjectTypeSetting {
-    const scaleFactor = calculateScaleBetweenOneAndTwo(Math.max(schema[0].length, schema[1].length), ProjectTypeSettings[type].width);
+function getBeadsSize(schema: SchemaItem[][], type: ProjectTypeEnum): Bead {
+    const scaleFactor = calculateScaleBetweenOneAndTwo(Math.max(schema[0].length, schema[1].length), BeadSettings[type].width);
     return {
-        width: ProjectTypeSettings[type].width * scaleFactor,
-        height: ProjectTypeSettings[type].height * scaleFactor,
+        width: BeadSettings[type].width * scaleFactor,
+        height: BeadSettings[type].height * scaleFactor,
     };
 }
 

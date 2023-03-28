@@ -5,10 +5,10 @@ import { PDFBuilder } from './pdf_builder';
 import { Bead, BeadSettings } from './resources/bead';
 
 export class PDFFactory {
-    builder: PDFBuilder;
-    project: Project;
-    filePath: string;
-    parsedSchema: Schema;
+    private builder: PDFBuilder;
+    private project: Project;
+    private filePath: string;
+    private parsedSchema: Schema;
 
     constructor(project: Project) {
         this.project = project;
@@ -24,7 +24,7 @@ export class PDFFactory {
 
     async endDocument() {
         this.builder.endPipe();
-        return await FileStorageHelper.extractFile(this.filePath);
+        // return await FileStorageHelper.extractFile(this.filePath);
     }
 
     addInfoPage() {
@@ -43,7 +43,7 @@ export class PDFFactory {
             .writeText(byUserText, this.builder.getCenteredPositionOfText(byUserText, this.builder.SIZE.WIDTH))
             .moveTextCursorDown()
             .writeText(fromSite, this.builder.getCenteredPositionOfText(fromSite, this.builder.SIZE.WIDTH))
-            .writeLink(siteURL, siteURL, this.builder.getCenteredPositionOfText(fromSite, this.builder.SIZE.WIDTH));
+            .writeLink(siteURL, siteURL, this.builder.getCenteredPositionOfText(siteURL, this.builder.SIZE.WIDTH));
 
         if (process.env.SUPPORT_US_URL && process.env.SUPPORT_US_URL !== '') {
             const supportUsMessage = 'Підтримати проєкт: ';
@@ -56,7 +56,13 @@ export class PDFFactory {
 
         this.addStatistics();
         this.addSiteMark();
+        return this;
     }
+
+    addSchema() {
+
+    }
+
 
     private addStatistics() {
         const statistic: { number: string, color: string, count: number; }[] = [];
@@ -80,6 +86,7 @@ export class PDFFactory {
         const bead = this.getScaledBead(ProjectTypeEnum.brick);
         this.builder
             .setBead(bead)
+            .setLineWidth(0.5)
             .setFont(this.builder.FONT.REGULAR)
             .setFontSize(this.builder.FONT_SIZE.SECONDARY)
             .setColor(this.builder.COLOR.BLACK);
@@ -88,12 +95,14 @@ export class PDFFactory {
         let x = this.builder.PADDING.LEFT;
         let y = initialY;
         const lineSpacing = bead.height + half(bead.height);
-        const beadSpacing = bead.width + half(bead.width);
+        const beadSpacing = bead.width;
         const columnSpacing = 200;
         for (const item of statistic) {
             const text = ` — ${item.count} шт.`;
             this.builder
+                .setColor(item.color)
                 .drawBead(x, y, item.number)
+                .setColor(this.builder.COLOR.BLACK)
                 .writeText(text, x + beadSpacing, y + this.builder.getMiddledPositionOfText(text, bead.height));
 
             y += lineSpacing;
@@ -102,6 +111,7 @@ export class PDFFactory {
                 x += columnSpacing;
             }
         }
+        return this;
     }
 
     private addSiteMark() {
@@ -113,7 +123,7 @@ export class PDFFactory {
             .writeText(siteMark, this.builder.getCenteredPositionOfText(siteMark, this.builder.SIZE.WIDTH), this.builder.PADDING.BOTTOM);
     }
 
-    getScaledBead(type: ProjectTypeEnum): Bead {
+    private getScaledBead(type: ProjectTypeEnum): Bead {
         const scaleFactor = 0.5;
         return {
             width: BeadSettings[type].width * scaleFactor,
