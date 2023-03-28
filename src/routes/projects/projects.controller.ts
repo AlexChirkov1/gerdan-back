@@ -175,6 +175,8 @@ export class ProjectsController {
         const file = await factory
             .startDocument()
             .addInfoPage()
+            .addSchema()
+            .addInstruction()
             .endDocument();
         
         res.status(201).send(file);

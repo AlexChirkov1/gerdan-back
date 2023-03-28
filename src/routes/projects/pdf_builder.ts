@@ -118,6 +118,18 @@ export class PDFBuilder {
         return this;
     }
 
+    public addSliceInfo(currentRow: number, totalRows: number, currentCol: number, totalCols: number) {
+        let text = `Частина: ${currentRow}/${totalRows}`;
+        if (totalCols > 1) text += `, Сторінка: ${currentCol}/${totalCols}`;
+
+        this.doc
+            .fontSize(this.FONT_SIZE.PAGE_NUMBER)
+            .fillColor(this.COLOR.BLACK)
+            .text(text, this.PADDING.LEFT, this.PADDING.BOTTOM)
+            .fontSize(this.settings.fontSize)
+            .fillColor(this.settings.color);
+    }
+
     public writeText(text: string, x: number, y?: number) {
         this.doc.text(text, x, y);
         return this;

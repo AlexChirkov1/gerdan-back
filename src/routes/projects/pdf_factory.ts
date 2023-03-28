@@ -1,4 +1,4 @@
-import { Project, ProjectTypeEnum, Schema } from 'src/database/models/project.model';
+import { Project, ProjectTypeEnum, Schema, SchemaItem } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { half } from 'src/utils/half';
 import { PDFBuilder } from './pdf_builder';
@@ -59,10 +59,180 @@ export class PDFFactory {
         return this;
     }
 
-    addSchema() {
+    addInstruction() {
+        const instruction = this.getParsedInstructions();
+        const bead = this.getScaledBead(ProjectTypeEnum.brick);
 
+        this.builder
+            .addPage()
+            .setBead(bead)
+            .setLineWidth(0.5)
+            .setFont(this.builder.FONT.REGULAR)
+            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+        
+        if (this.project.type === ProjectTypeEnum.peyote || this.project.type === ProjectTypeEnum.brick) {
+            
+        }
+
+        // let x = 0, y = 0;
+        // for (const row of instruction) {
+        //     for (const item of row) {
+        //         const text = `${item.count} шт.`;
+        //         this.builder
+        //             .setColor(item.color)
+        //             .drawBead(x, y, item.symbol);
+        //         x += bead.width;
+        //         this.builder
+        //             .setColor(this.builder.COLOR.BLACK)
+        //             .writeText(text, x, y);
+        //         x += text.length;
+        //     }
+        //     y += bead.height;
+        // }
+
+        // const initialY = this.builder.SIZE.MARGIN_TOP + this.builder.FONT_SIZE.SUBTITLE;
+        // const initialX = this.builder.SIZE.MARGIN_LEFT as number;
+        // const maxY = this.builder.SIZE.HEIGHT - this.builder.SIZE.MARGIN_BOTTOM;
+        // const maxX = this.builder.SIZE.WIDTH - this.builder.SIZE.MARGIN_RIGHT;
+        // let x = initialX;
+        // let y = initialY;
+        // const letterSpacing = 2;
+        // const lineSpacing = 14;
+        // const minX = 110;
+        // for (let row = 0; row < instruction.length; row++) {
+        //     if (y >= maxY) {
+        //         y = initialY;
+        //         this.builder.addPage();
+        //     }
+        //     const newRowText = `${row + 1} ряд: `;
+        //     this.builder
+        //         .setColor(this.builder.COLOR.BLACK)
+        //         .writeText(newRowText, x, y);
+
+        //     x = minX;
+        //     for (let col = 0; col < instruction[row].length; col++) {
+        //         if (x >= maxX) {
+        //             y += lineSpacing;
+        //             x = minX;
+        //         }
+        //         const text = `${instruction[row][col].count} шт.`;
+        //         this.builder.drawBead(x, y, instruction[row][col].symbol);
+        //         x += bead.width + letterSpacing;
+        //         this.builder
+        //             .setColor(this.builder.COLOR.BLACK)
+        //             .writeText(text, x, y);
+        //         x += 50;
+        //     }
+        //     y += lineSpacing;
+        //     x = initialX;
+        // }
+        return this;
     }
 
+    private getParsedInstructions() {
+        const linesMetadata: { color: string, count: number, symbol: string; }[][] = [];
+        for (let row = 0; row < this.parsedSchema.length; row++) linesMetadata.push(this.countAndGroupConsecutiveColors(this.parsedSchema[row]));
+        return linesMetadata;
+    }
+
+    private countAndGroupConsecutiveColors(row: SchemaItem[]) {
+        const result = [];
+        let color = null;
+        let count = 0;
+        let symbol = null;
+        for (let col = 0; col < row.length; col++) {
+            const newColor = row[col].filled && row[col].color;
+            const sameColor = newColor === color;
+            if (!sameColor && color) result.push({ color, count, symbol });
+            if (!sameColor) {
+                color = newColor;
+                count = 0;
+                symbol = row[col].number?.toString();
+            }
+            if (color) count++;
+        }
+        if (color) result.push({ color, count, symbol });
+        return result;
+    }
+
+    addSchema() {
+        const bead = this.getScaledBead(this.project.type);
+        let beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
+        if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
+        const beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
+
+        const cut = this.cutSchemaIntoSlices(bead, beadsRowsPerPage, beadsColsPerPage);
+
+        this.builder
+            .setBead(bead)
+            .setLineWidth(0.5)
+            .setFont(this.builder.FONT.REGULAR)
+            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+
+        let xShift = 0, yShift = 0;
+        let colsCounter = 0, rowsCounter = 1;
+        const halfBeadWidth = half(bead.width);
+        const halfBeadHeight = half(bead.height);
+        for (const slice of cut.slices) {
+            for (let row = 0; row < slice.length; row++) {
+                if (this.project.type === ProjectTypeEnum.brick) xShift = row % 2 ? halfBeadWidth : 0;
+                const beadsOutOfPageHeight = !(row % beadsRowsPerPage);
+                if (beadsOutOfPageHeight) {
+                    if (colsCounter >= cut.totalCols) {
+                        colsCounter = 0;
+                        rowsCounter++;
+                    }
+
+                    this.builder
+                        .addPage()
+                        .addSliceInfo(rowsCounter, cut.totalRows, ++colsCounter, cut.totalCols);
+                }
+
+                for (let col = 0; col < slice[row].length; col++) {
+                    if (this.project.type === ProjectTypeEnum.peyote) yShift = col % 2 ? halfBeadHeight : yShift = 0;
+                    const x = col * bead.width + this.builder.SIZE.MARGIN_LEFT + xShift;
+                    const y = row * bead.height + this.builder.SIZE.MARGIN_TOP + yShift;
+                    const color = slice[row][col].filled ? slice[row][col].color : this.project.backgroundColor;
+                    this.builder
+                        .setColor(color)
+                        .drawBead(x, y, slice[row][col].number?.toString());
+                }
+            }
+        }
+        return this;
+    }
+
+    private cutSchemaIntoSlices(bead: Bead, rowsPerSlice: number, colsPerSlice: number) {
+        const rows = this.parsedSchema.length;
+        const cols = Math.max(this.parsedSchema[0].length, this.parsedSchema[1].length);
+
+        const slices: Schema[] = [];
+        let totalRows = 0;
+        let totalCols = 0;
+        for (let i = 0; i < rows; i += rowsPerSlice) {
+            totalCols = 0;
+            for (let j = 0; j < cols; j += colsPerSlice) {
+                slices.push(this.sliceSchema(bead, i, rowsPerSlice, j, colsPerSlice));
+                totalCols++;
+            }
+            totalRows++;
+        }
+
+        return { slices, totalRows, totalCols };
+    }
+
+    private sliceSchema(bead: Bead, currentRow: number, totalRows: number, currentCol: number, totalCols: number) {
+        return this.parsedSchema
+            .slice(currentRow, currentRow + totalRows)
+            .map(row => row
+                .slice(currentCol, currentCol + totalCols)
+                .map(slice => ({
+                    ...slice,
+                    x: slice.x - totalCols * bead.width,
+                    y: slice.y - totalRows * bead.height,
+                }))
+            );
+    }
 
     private addStatistics() {
         const statistic: { number: string, color: string, count: number; }[] = [];
