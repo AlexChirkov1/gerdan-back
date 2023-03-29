@@ -162,4 +162,11 @@ export class PDFBuilder {
         return half(height) - half(this.doc.heightOfString(text));
     }
 
+    public getTextWidth(text: string) {
+        return this.doc.widthOfString(text);
+    }
+    public getTextHeight(text: string) {
+        return this.doc.heightOfString(text);
+    }
+
 }

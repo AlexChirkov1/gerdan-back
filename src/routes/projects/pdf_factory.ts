@@ -61,72 +61,93 @@ export class PDFFactory {
 
     addInstruction() {
         const instruction = this.getParsedInstructions();
-        const bead = this.getScaledBead(ProjectTypeEnum.brick);
 
+        if (this.project.type === ProjectTypeEnum.peyote || this.project.type === ProjectTypeEnum.brick) this.addPeyoteInstruction(instruction);
+        if (this.project.type === ProjectTypeEnum.grid || this.project.type === ProjectTypeEnum.loom) this.addGridInstruction(instruction);
+
+        return this;
+    }
+
+    private addGridInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
+        const bead = this.getScaledBead(ProjectTypeEnum.brick);
         this.builder
             .addPage()
             .setBead(bead)
             .setLineWidth(0.5)
             .setFont(this.builder.FONT.REGULAR)
             .setFontSize(this.builder.FONT_SIZE.SECONDARY);
-        
-        if (this.project.type === ProjectTypeEnum.peyote || this.project.type === ProjectTypeEnum.brick) {
-            
+
+        let x = this.builder.PADDING.LEFT as number, y = this.builder.PADDING.TOP as number;
+        const lineSpacing = bead.height + half(bead.height);
+        const beadSpacing = bead.width * .25;
+        let rowsCounter = 0;
+        for (const row of instruction) {
+            const newRowText = `${++rowsCounter} ряд:`;
+            const newRowTextLength = this.builder.getTextWidth(newRowText) + beadSpacing;
+            this.builder.writeText(newRowText, x, y);
+            x += newRowTextLength;
+            for (const item of row) {
+                const text = ` — ${item.count} шт.`;
+                const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
+                if (x + cellLength >= this.builder.PADDING.RIGHT) x = this.builder.PADDING.LEFT + newRowTextLength;
+                this.builder
+                    .setColor(item.color)
+                    .drawBead(x, y, item.symbol);
+                x += bead.width;
+                this.builder
+                    .setColor(this.builder.COLOR.BLACK)
+                    .writeText(text, x, y);
+                x += beadSpacing + this.builder.getTextWidth(text);
+            }
+            y += bead.height + lineSpacing;
+            x = this.builder.PADDING.LEFT;
+            if (y >= this.builder.PADDING.BOTTOM) {
+                y = this.builder.PADDING.TOP;
+                this.builder.addPage();
+            }
         }
+    }
 
-        // let x = 0, y = 0;
-        // for (const row of instruction) {
-        //     for (const item of row) {
-        //         const text = `${item.count} шт.`;
-        //         this.builder
-        //             .setColor(item.color)
-        //             .drawBead(x, y, item.symbol);
-        //         x += bead.width;
-        //         this.builder
-        //             .setColor(this.builder.COLOR.BLACK)
-        //             .writeText(text, x, y);
-        //         x += text.length;
-        //     }
-        //     y += bead.height;
-        // }
+    private addPeyoteInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
+        const bead = this.getScaledBead(ProjectTypeEnum.brick);
+        this.builder
+            .addPage()
+            .setBead(bead)
+            .setLineWidth(0.5)
+            .setFont(this.builder.FONT.REGULAR)
+            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
 
-        // const initialY = this.builder.SIZE.MARGIN_TOP + this.builder.FONT_SIZE.SUBTITLE;
-        // const initialX = this.builder.SIZE.MARGIN_LEFT as number;
-        // const maxY = this.builder.SIZE.HEIGHT - this.builder.SIZE.MARGIN_BOTTOM;
-        // const maxX = this.builder.SIZE.WIDTH - this.builder.SIZE.MARGIN_RIGHT;
-        // let x = initialX;
-        // let y = initialY;
-        // const letterSpacing = 2;
-        // const lineSpacing = 14;
-        // const minX = 110;
-        // for (let row = 0; row < instruction.length; row++) {
-        //     if (y >= maxY) {
-        //         y = initialY;
-        //         this.builder.addPage();
-        //     }
-        //     const newRowText = `${row + 1} ряд: `;
-        //     this.builder
-        //         .setColor(this.builder.COLOR.BLACK)
-        //         .writeText(newRowText, x, y);
-
-        //     x = minX;
-        //     for (let col = 0; col < instruction[row].length; col++) {
-        //         if (x >= maxX) {
-        //             y += lineSpacing;
-        //             x = minX;
-        //         }
-        //         const text = `${instruction[row][col].count} шт.`;
-        //         this.builder.drawBead(x, y, instruction[row][col].symbol);
-        //         x += bead.width + letterSpacing;
-        //         this.builder
-        //             .setColor(this.builder.COLOR.BLACK)
-        //             .writeText(text, x, y);
-        //         x += 50;
-        //     }
-        //     y += lineSpacing;
-        //     x = initialX;
-        // }
-        return this;
+        let x = this.builder.PADDING.LEFT as number, y = this.builder.PADDING.TOP as number;
+        const lineSpacing = bead.height + half(bead.height);
+        const beadSpacing = bead.width * .25;
+        let rowsCounter = 0;
+        for (const row of instruction) {
+            const reversed = ++rowsCounter % 2 === 0;
+            const newRowText = rowsCounter + ' ряд ' + (reversed ? '(навпаки):' : ':');
+            const newRowTextLength = this.builder.getTextWidth(newRowText) + beadSpacing;
+            this.builder.writeText(newRowText, x, y);
+            x += newRowTextLength;
+            for (let i = 0; i < row.length; i++) {
+                const itemIndex = reversed ? row.length - 1 - i : i;
+                const text = ` — ${row[itemIndex].count} шт.`;
+                const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
+                if (x + cellLength >= this.builder.PADDING.RIGHT) x = this.builder.PADDING.LEFT + newRowTextLength;
+                this.builder
+                    .setColor(row[itemIndex].color)
+                    .drawBead(x, y, row[itemIndex].symbol);
+                x += bead.width;
+                this.builder
+                    .setColor(this.builder.COLOR.BLACK)
+                    .writeText(text, x, y);
+                x += beadSpacing + this.builder.getTextWidth(text);
+            }
+            y += bead.height + lineSpacing;
+            x = this.builder.PADDING.LEFT;
+            if (y >= this.builder.PADDING.BOTTOM) {
+                y = this.builder.PADDING.TOP;
+                this.builder.addPage();
+            }
+        }
     }
 
     private getParsedInstructions() {
@@ -141,11 +162,11 @@ export class PDFFactory {
         let count = 0;
         let symbol = null;
         for (let col = 0; col < row.length; col++) {
-            const newColor = row[col].filled && row[col].color;
-            const sameColor = newColor === color;
+            if (!row[col].filled) continue;
+            const sameColor = row[col].color === color;
             if (!sameColor && color) result.push({ color, count, symbol });
             if (!sameColor) {
-                color = newColor;
+                color = row[col].color;
                 count = 0;
                 symbol = row[col].number?.toString();
             }
@@ -169,7 +190,7 @@ export class PDFFactory {
             .setFont(this.builder.FONT.REGULAR)
             .setFontSize(this.builder.FONT_SIZE.SECONDARY);
 
-        let xShift = 0, yShift = 0;
+        let xShift = 0, yShift = 0; // TODO: додати перевірку на довший/коротший рядок.
         let colsCounter = 0, rowsCounter = 1;
         const halfBeadWidth = half(bead.width);
         const halfBeadHeight = half(bead.height);
