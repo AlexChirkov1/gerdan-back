@@ -46,6 +46,7 @@ export class PDFBuilder {
         lineWidth: number,
         beadWidth: number,
         beadHeight: number,
+        symbols: boolean,
     } = {
             fontSize: this.FONT_SIZE.PRIMARY,
             font: this.FONT.REGULAR,
@@ -53,6 +54,7 @@ export class PDFBuilder {
             lineWidth: 1,
             beadWidth: 10,
             beadHeight: 10,
+            symbols: true,
         };
 
     constructor(projectName: string, username: string) {
@@ -78,6 +80,11 @@ export class PDFBuilder {
 
     public pipeTo(filePath: string) { this.doc.pipe(createWriteStream(filePath)); }
     public endPipe() { this.doc.end(); }
+
+    public setBeadNumbers(state: boolean) {
+        this.settings.symbols = state;
+        return this;
+    }
 
     public setFontSize(fontSize: typeof this.FONT_SIZE[keyof typeof this.FONT_SIZE]) {
         this.settings.fontSize = fontSize;
@@ -144,13 +151,21 @@ export class PDFBuilder {
             .rect(x, y, this.settings.beadWidth - this.settings.lineWidth, this.settings.beadHeight - this.settings.lineWidth)
             .fillAndStroke(this.settings.color, convertColorToMonochrome(this.settings.color, { primary: '#3B3B3B', secondary: '#AEAEAE' }));
 
-        if (symbol) {
+        if (symbol && this.settings.symbols) {
             const xSymbol = x + this.getCenteredPositionOfText(symbol, this.settings.beadWidth);
             const ySymbol = y + this.getMiddledPositionOfText(symbol, this.settings.beadHeight);
             this.doc
                 .fillColor(convertColorToMonochrome(this.settings.color))
                 .text(symbol, xSymbol, ySymbol, { lineBreak: false });
         }
+        return this;
+    }
+
+    public drawLine(startX: number, startY: number, endX: number, endY: number) {
+        this.doc
+            .moveTo(startX, startY)
+            .lineTo(endX, endY)
+            .stroke();
         return this;
     }
 

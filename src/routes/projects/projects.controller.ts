@@ -22,7 +22,6 @@ import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
-import { makePdfDocument } from './old/pdf_maker';
 import { PDFFactory } from './pdf_factory';
 import { createPreview } from './preview';
 import { ProjectsService } from './projects.service';
@@ -171,14 +170,14 @@ export class ProjectsController {
         project = await this.projectsService.getDetails(id, transaction);
         // const file = await createPDF(project);
         // const file = await makePdfDocument(project);
-        const factory = new PDFFactory(project);
+        const factory = new PDFFactory(project, { numbers: true, rulers: true });
         const file = await factory
             .startDocument()
             .addInfoPage()
             .addSchema()
             .addInstruction()
             .endDocument();
-        
+
         res.status(201).send(file);
     }
 }

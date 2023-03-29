@@ -4,17 +4,22 @@ import { half } from 'src/utils/half';
 import { PDFBuilder } from './pdf_builder';
 import { Bead, BeadSettings } from './resources/bead';
 
+type PDFOptions = {
+    numbers: boolean;
+    rulers: boolean;
+}
 export class PDFFactory {
     private builder: PDFBuilder;
     private project: Project;
     private filePath: string;
     private parsedSchema: Schema;
 
-    constructor(project: Project) {
+    constructor(project: Project, private readonly options: PDFOptions) {
         this.project = project;
         this.builder = new PDFBuilder(this.project.name, this.project.author.username);
         this.filePath = FileStorageHelper.prepareFilePathToTempFolder(`${project.author.username}-${project.name}`, 'pdf');
         this.parsedSchema = JSON.parse(project.schema);
+        if (!this.options.numbers) this.builder.setBeadNumbers(false);
     }
 
     startDocument() {
@@ -190,13 +195,20 @@ export class PDFFactory {
             .setFont(this.builder.FONT.REGULAR)
             .setFontSize(this.builder.FONT_SIZE.SECONDARY);
 
-        let xShift = 0, yShift = 0; // TODO: додати перевірку на довший/коротший рядок.
+        let isReversedBrick = false;
+        if (this.project.type === ProjectTypeEnum.brick) isReversedBrick = this.parsedSchema[0].length < this.parsedSchema[1].length;
+
+        let xShift = 0, yShift = 0;
         let colsCounter = 0, rowsCounter = 1;
         const halfBeadWidth = half(bead.width);
         const halfBeadHeight = half(bead.height);
+        let rulerColsCounter = 0;
         for (const slice of cut.slices) {
             for (let row = 0; row < slice.length; row++) {
-                if (this.project.type === ProjectTypeEnum.brick) xShift = row % 2 ? halfBeadWidth : 0;
+                if (this.project.type === ProjectTypeEnum.brick) {
+                    if (isReversedBrick) xShift = row % 2 ? 0 : halfBeadWidth;
+                    else xShift = row % 2 ? halfBeadWidth : 0;
+                }
                 const beadsOutOfPageHeight = !(row % beadsRowsPerPage);
                 if (beadsOutOfPageHeight) {
                     if (colsCounter >= cut.totalCols) {
@@ -207,16 +219,36 @@ export class PDFFactory {
                     this.builder
                         .addPage()
                         .addSliceInfo(rowsCounter, cut.totalRows, ++colsCounter, cut.totalCols);
+                    
+                    let x = 0, y = 0;
+                    let rulerText = '', centeredPositionOfText = 0, middledPositionOfText = 0;
+                    for (let col = 0; col < slice[row].length; col++) {
+                        rulerText = (++rulerColsCounter).toString();
+                        // centeredPositionOfText = this.builder.getCenteredPositionOfText(rulerText, bead.width);
+                        // middledPositionOfText = this.builder.getMiddledPositionOfText(rulerText, bead.height);
+                        x = this.builder.PADDING.LEFT + col * bead.width + xShift;
+                        y = this.builder.PADDING.TOP - bead.height * .75;
+                        // if (!(rulerColsCounter % 5)) this.builder.writeText(rulerText, x, y);
+                        this.builder.drawLine(
+                            x - centeredPositionOfText + halfBeadWidth,
+                            y + bead.height * .75,
+                            x - centeredPositionOfText + halfBeadWidth,
+                            y + bead.height
+                        )
+                    }
                 }
 
                 for (let col = 0; col < slice[row].length; col++) {
                     if (this.project.type === ProjectTypeEnum.peyote) yShift = col % 2 ? halfBeadHeight : yShift = 0;
-                    const x = col * bead.width + this.builder.SIZE.MARGIN_LEFT + xShift;
-                    const y = row * bead.height + this.builder.SIZE.MARGIN_TOP + yShift;
+                    const x = col * bead.width + this.builder.PADDING.LEFT + xShift;
+                    const y = row * bead.height + this.builder.PADDING.TOP + yShift;
                     const color = slice[row][col].filled ? slice[row][col].color : this.project.backgroundColor;
                     this.builder
                         .setColor(color)
                         .drawBead(x, y, slice[row][col].number?.toString());
+                    // check rows counter
+                    // write ruler number
+                    // draw a line
                 }
             }
         }
@@ -224,15 +256,12 @@ export class PDFFactory {
     }
 
     private cutSchemaIntoSlices(bead: Bead, rowsPerSlice: number, colsPerSlice: number) {
-        const rows = this.parsedSchema.length;
-        const cols = Math.max(this.parsedSchema[0].length, this.parsedSchema[1].length);
-
         const slices: Schema[] = [];
         let totalRows = 0;
         let totalCols = 0;
-        for (let i = 0; i < rows; i += rowsPerSlice) {
+        for (let i = 0; i < this.parsedSchema.length; i += rowsPerSlice) {
             totalCols = 0;
-            for (let j = 0; j < cols; j += colsPerSlice) {
+            for (let j = 0; j < this.parsedSchema[i].length; j += colsPerSlice) {
                 slices.push(this.sliceSchema(bead, i, rowsPerSlice, j, colsPerSlice));
                 totalCols++;
             }
