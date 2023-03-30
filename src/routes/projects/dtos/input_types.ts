@@ -23,3 +23,9 @@ export type ProjectMetadataInput = {
     type: string;
     backgroundColor?: string;
 };
+
+export type PDFOptionsInput = {
+    numbers: boolean;
+    rulers: boolean;
+    alias: { number: number, as: string; }[];
+};

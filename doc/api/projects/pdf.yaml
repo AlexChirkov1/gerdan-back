@@ -14,6 +14,29 @@ post:
         type: string
         example: MjA
       required: true
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            numbers:
+              type: boolean
+              default: true
+            rulers:
+              type: boolean
+              default: true
+            alias:
+              type: array
+              items:
+                type: object
+                properties:
+                  number: 
+                    type: number
+                  as: 
+                    type: string
+                    minLength: 0
+                    maxLength: 100
   responses:
     "200":
       description: Created

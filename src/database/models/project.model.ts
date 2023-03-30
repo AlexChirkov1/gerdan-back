@@ -4,7 +4,7 @@ import { commonScopes } from '../common/common.scopes';
 import { File } from './file.model';
 import { User } from './user.model';
 
-type SchemaItem = {
+export type SchemaItem = {
     x: number;
     y: number;
     filled: boolean;

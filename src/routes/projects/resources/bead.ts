@@ -1,11 +1,11 @@
 import { ProjectTypeEnum } from 'src/database/models/project.model';
 
-export type BeadSetting = {
+export type Bead = {
     width: number;
     height: number;
 };
 
-export const ProjectTypeSettings = {
+export const BeadSettings = {
     [ProjectTypeEnum.loom]: {
         width: 20,
         height: 30
