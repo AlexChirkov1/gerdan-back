@@ -152,7 +152,7 @@ export class PDFBuilder {
     public drawBead(x: number, y: number, symbol?: string) {
         this.doc
             .rect(x, y, this.settings.beadWidth - this.settings.lineWidth, this.settings.beadHeight - this.settings.lineWidth)
-            .fillAndStroke(this.settings.color, convertColorToMonochrome(this.settings.color, { primary: '#3B3B3B', secondary: '#AEAEAE' }));
+            .fillAndStroke(this.settings.color, this.COLOR.GRAY);
 
         if (symbol && this.settings.symbols) {
             const xSymbol = x + this.getCenteredPositionOfText(symbol, this.settings.beadWidth);
@@ -163,7 +163,7 @@ export class PDFBuilder {
         }
         return this;
     }
-
+    
     public drawLine(startX: number, startY: number, endX: number, endY: number) {
         this.doc
             .moveTo(startX, startY)
