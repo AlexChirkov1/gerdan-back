@@ -7,7 +7,7 @@ import { Bead, BeadSettings } from './resources/bead';
 type PDFOptions = {
     numbers: boolean;
     rulers: boolean;
-}
+};
 export class PDFFactory {
     private builder: PDFBuilder;
     private project: Project;
@@ -75,8 +75,9 @@ export class PDFFactory {
 
     private addGridInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
         const bead = this.getScaledBead(ProjectTypeEnum.brick);
+        this.builder.addPage();
+        this.addSiteMark();
         this.builder
-            .addPage()
             .setBead(bead)
             .setLineWidth(0.5)
             .setFont(this.builder.FONT.REGULAR)
@@ -109,14 +110,19 @@ export class PDFFactory {
             if (y >= this.builder.PADDING.BOTTOM) {
                 y = this.builder.PADDING.TOP;
                 this.builder.addPage();
+                this.addSiteMark();
+                this.builder
+                    .setFont(this.builder.FONT.REGULAR)
+                    .setFontSize(this.builder.FONT_SIZE.SECONDARY);
             }
         }
     }
 
     private addPeyoteInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
         const bead = this.getScaledBead(ProjectTypeEnum.brick);
+        this.builder.addPage()
+        this.addSiteMark();
         this.builder
-            .addPage()
             .setBead(bead)
             .setLineWidth(0.5)
             .setFont(this.builder.FONT.REGULAR)
@@ -151,6 +157,10 @@ export class PDFFactory {
             if (y >= this.builder.PADDING.BOTTOM) {
                 y = this.builder.PADDING.TOP;
                 this.builder.addPage();
+                this.addSiteMark();
+                this.builder
+                    .setFont(this.builder.FONT.REGULAR)
+                    .setFontSize(this.builder.FONT_SIZE.SECONDARY);
             }
         }
     }
@@ -202,7 +212,7 @@ export class PDFFactory {
         let colsCounter = 0, rowsCounter = 1;
         const halfBeadWidth = half(bead.width);
         const halfBeadHeight = half(bead.height);
-        let rulerColsCounter = 0;
+        let rulerColsCounter = 0, rulerRowsCounter = 0;
         for (const slice of cut.slices) {
             for (let row = 0; row < slice.length; row++) {
                 if (this.project.type === ProjectTypeEnum.brick) {
@@ -213,29 +223,51 @@ export class PDFFactory {
                 if (beadsOutOfPageHeight) {
                     if (colsCounter >= cut.totalCols) {
                         colsCounter = 0;
+                        rulerColsCounter = 0;
                         rowsCounter++;
                     }
 
+                    this.builder.addPage();
+                    this.addSiteMark();
                     this.builder
-                        .addPage()
+                        .setFont(this.builder.FONT.REGULAR)
+                        .setFontSize(this.builder.FONT_SIZE.SECONDARY)
                         .addSliceInfo(rowsCounter, cut.totalRows, ++colsCounter, cut.totalCols);
-                    
-                    let x = 0, y = 0;
-                    let rulerText = '', centeredPositionOfText = 0, middledPositionOfText = 0;
-                    for (let col = 0; col < slice[row].length; col++) {
-                        rulerText = (++rulerColsCounter).toString();
-                        // centeredPositionOfText = this.builder.getCenteredPositionOfText(rulerText, bead.width);
-                        // middledPositionOfText = this.builder.getMiddledPositionOfText(rulerText, bead.height);
-                        x = this.builder.PADDING.LEFT + col * bead.width + xShift;
-                        y = this.builder.PADDING.TOP - bead.height * .75;
-                        // if (!(rulerColsCounter % 5)) this.builder.writeText(rulerText, x, y);
-                        this.builder.drawLine(
-                            x - centeredPositionOfText + halfBeadWidth,
-                            y + bead.height * .75,
-                            x - centeredPositionOfText + halfBeadWidth,
-                            y + bead.height
-                        )
+
+                    if (this.options.rulers) {
+                        let x = 0, y = 0;
+                        let rulerText = '';
+                        let centeredPositionOfText = 0;
+                        this.builder.setColor(this.builder.COLOR.GRAY);
+                        for (let col = 0; col < slice[row].length; col++) {
+                            rulerText = (++rulerColsCounter).toString();
+                            centeredPositionOfText = this.builder.getCenteredPositionOfText(rulerText, bead.width);
+                            x = this.builder.PADDING.LEFT + col * bead.width + xShift;
+                            y = this.builder.PADDING.TOP - bead.height;
+                            if (!(rulerColsCounter % 5)) this.builder.writeText(rulerText, x + centeredPositionOfText, y);
+                            this.builder.drawLine(
+                                x + halfBeadWidth,
+                                y + bead.height * .75,
+                                x + halfBeadWidth,
+                                y + bead.height
+                            );
+                        }
                     }
+                }
+
+                if (this.options.rulers) {
+                    const x = this.builder.PADDING.LEFT;
+                    const y = this.builder.PADDING.TOP + row * bead.height + yShift;
+                    const rulerText = (++rulerRowsCounter).toString();
+                    const middledPositionOfText = this.builder.getMiddledPositionOfText(rulerText, bead.height);
+                    this.builder.setColor(this.builder.COLOR.GRAY);
+                    if (!(rulerRowsCounter % 10)) this.builder.writeText(rulerText, x - bead.width, y + middledPositionOfText);
+                    this.builder.drawLine(
+                        x,
+                        y + bead.height,
+                        !(rulerRowsCounter % 10) ? x - bead.width : x - halfBeadWidth,
+                        y + bead.height
+                    );
                 }
 
                 for (let col = 0; col < slice[row].length; col++) {
@@ -246,9 +278,6 @@ export class PDFFactory {
                     this.builder
                         .setColor(color)
                         .drawBead(x, y, slice[row][col].number?.toString());
-                    // check rows counter
-                    // write ruler number
-                    // draw a line
                 }
             }
         }

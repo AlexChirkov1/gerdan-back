@@ -116,7 +116,10 @@ export class PDFBuilder {
 
     public addPage() {
         this.doc.addPage();
-        if (this.pageCounter === 0) return this;
+        if (this.pageCounter === 0) {
+            ++this.pageCounter;
+            return this;
+        }
         this.doc
             .fontSize(this.FONT_SIZE.PAGE_NUMBER)
             .fillColor(this.COLOR.GRAY)
@@ -165,7 +168,7 @@ export class PDFBuilder {
         this.doc
             .moveTo(startX, startY)
             .lineTo(endX, endY)
-            .stroke();
+            .stroke(this.settings.color);
         return this;
     }
 
