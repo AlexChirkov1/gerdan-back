@@ -59,7 +59,7 @@ export class PDFFactory {
                 .writeLink(supportUsURL, supportUsURL, this.builder.getCenteredPositionOfText(supportUsURL, this.builder.SIZE.WIDTH));
         }
 
-        this.addStatistics();
+        this.addStatistics(); // TODO: немає переносу на нову колонку
         this.addSiteMark();
         return this;
     }
@@ -67,6 +67,7 @@ export class PDFFactory {
     addInstruction() {
         const instruction = this.getParsedInstructions();
 
+        // TODO: рядки накладуються один на одного
         if (this.project.type === ProjectTypeEnum.peyote || this.project.type === ProjectTypeEnum.brick) this.addPeyoteInstruction(instruction);
         if (this.project.type === ProjectTypeEnum.grid || this.project.type === ProjectTypeEnum.loom) this.addGridInstruction(instruction);
 
@@ -95,7 +96,18 @@ export class PDFFactory {
             for (const item of row) {
                 const text = ` — ${item.count} шт.`;
                 const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
-                if (x + cellLength >= this.builder.PADDING.RIGHT) x = this.builder.PADDING.LEFT + newRowTextLength;
+                if (x + cellLength >= this.builder.PADDING.RIGHT) {
+                    x = this.builder.PADDING.LEFT + newRowTextLength + beadSpacing;
+                    y += bead.height + lineSpacing;
+                    if (y >= this.builder.PADDING.BOTTOM) {
+                        y = this.builder.PADDING.TOP;
+                        this.builder.addPage();
+                        this.addSiteMark();
+                        this.builder
+                            .setFont(this.builder.FONT.REGULAR)
+                            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+                    }
+                }
                 this.builder
                     .setColor(item.color)
                     .drawBead(x, y, item.symbol);
@@ -134,7 +146,7 @@ export class PDFFactory {
         let rowsCounter = 0;
         for (const row of instruction) {
             const reversed = ++rowsCounter % 2 === 0;
-            const newRowText = rowsCounter + ' ряд ' + (reversed ? '(навпаки):' : ':');
+            const newRowText = rowsCounter + ' ряд' + (reversed ? ' (навпаки):' : ':');
             const newRowTextLength = this.builder.getTextWidth(newRowText) + beadSpacing;
             this.builder.writeText(newRowText, x, y);
             x += newRowTextLength;
@@ -142,7 +154,18 @@ export class PDFFactory {
                 const itemIndex = reversed ? row.length - 1 - i : i;
                 const text = ` — ${row[itemIndex].count} шт.`;
                 const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
-                if (x + cellLength >= this.builder.PADDING.RIGHT) x = this.builder.PADDING.LEFT + newRowTextLength;
+                if (x + cellLength >= this.builder.PADDING.RIGHT) {
+                    x = this.builder.PADDING.LEFT + this.builder.getTextWidth(rowsCounter + ' ряд:') + beadSpacing;
+                    y += bead.height + lineSpacing;
+                    if (y >= this.builder.PADDING.BOTTOM) {
+                        y = this.builder.PADDING.TOP;
+                        this.builder.addPage();
+                        this.addSiteMark();
+                        this.builder
+                            .setFont(this.builder.FONT.REGULAR)
+                            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+                    }
+                }
                 this.builder
                     .setColor(row[itemIndex].color)
                     .drawBead(x, y, row[itemIndex].symbol);
@@ -192,6 +215,7 @@ export class PDFFactory {
     }
 
     addSchema() {
+        // TODO: некрасиво
         const bead = this.getScaledBead(this.project.type);
         let beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
         if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
