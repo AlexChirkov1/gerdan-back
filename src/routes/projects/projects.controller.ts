@@ -15,16 +15,16 @@ import { ProjectTypeEnum } from 'src/database/models/project.model';
 import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { SupabaseService } from 'src/services/supabase/supabase.service';
+import { useDefault } from 'src/utils/use_default';
 import { BucketService } from '../bucket/bucket.service';
-import { PDFOptionsInput } from '../gerdans/dtos/input_types';
-import { PDFOptionsSchema } from '../gerdans/schemas/pdf_options.schema';
-import { ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
+import { PDFOptionsInput, ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
 import { ProjectSchemaDto } from './dtos/project_schema.dto';
 import { PDFFactory } from './pdf_factory';
 import { createPreview } from './preview';
 import { ProjectsService } from './projects.service';
+import { PDFOptionsSchema } from './schemas/pdf_options.schema';
 import { ProjectSchema } from './schemas/project.schema';
 import { ProjectMetadataSchema } from './schemas/project_metadata.schema';
 
@@ -142,35 +142,17 @@ export class ProjectsController {
         @SequelizeTransaction() transaction: Transaction,
         @UserSession() session: UserSessionData,
         @Param('id', Base10Pipe) id: string,
-        @Query() query: PDFOptionsInput,
+        @Body() body: PDFOptionsInput,
         @Res() res: Response,
     ) {
 
-        // TODO: move to helpers
-        if (query.numbers && typeof query.numbers === 'string') {
-            switch (query.numbers) {
-                case 'true': {
-                    query.numbers = true;
-                    break;
-                }
-                case 'false': {
-                    query.numbers = false;
-                    break;
-                }
-                default: {
-                    query.numbers = true;
-                }
-            }
-        } else {
-            query.numbers = true;
-        }
+        useDefault(body, 'numbers', true);
+        useDefault(body, 'rulers', true);
 
         let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
         project = await this.projectsService.getDetails(id, transaction);
-        // const file = await createPDF(project);
-        // const file = await makePdfDocument(project);
-        const factory = new PDFFactory(project, { numbers: true, rulers: true });
+        const factory = new PDFFactory(project, { numbers: body.numbers, rulers: body.rulers, alias: body.alias });
         const file = await factory
             .startDocument()
             .addInfoPage()

@@ -7,6 +7,7 @@ import { Bead, BeadSettings } from './resources/bead';
 type PDFOptions = {
     numbers: boolean;
     rulers: boolean;
+    alias: { number: number, as: string; }[];
 };
 export class PDFFactory {
     private builder: PDFBuilder;
@@ -29,7 +30,7 @@ export class PDFFactory {
 
     async endDocument() {
         this.builder.endPipe();
-        // return await FileStorageHelper.extractFile(this.filePath);
+        return await FileStorageHelper.extractFile(this.filePath);
     }
 
     addInfoPage() {
@@ -51,7 +52,7 @@ export class PDFFactory {
             .writeLink(siteURL, siteURL, this.builder.getCenteredPositionOfText(siteURL, this.builder.SIZE.WIDTH));
 
         if (process.env.SUPPORT_US_URL && process.env.SUPPORT_US_URL !== '') {
-            const supportUsMessage = 'Підтримати проєкт: ';
+            const supportUsMessage = 'Підтримати нас: ';
             const supportUsURL = process.env.SUPPORT_US_URL;
             this.builder
                 .moveTextCursorDown()
@@ -371,7 +372,14 @@ export class PDFFactory {
         const beadSpacing = bead.width;
         const columnSpacing = 200;
         for (const item of statistic) {
-            const text = ` — ${item.count} шт.`;
+            let alias = null;
+            let text = '';
+            if (this.options.alias) {
+                alias = this.options.alias.find(aliasItem => aliasItem.number.toString() === item.number);
+                if (alias) text += ' ' + alias.as;
+            }
+
+            text += ` — ${item.count} шт.`;
             this.builder
                 .setColor(item.color)
                 .drawBead(x, y, item.number)
