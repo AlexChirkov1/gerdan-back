@@ -87,7 +87,8 @@ export class InitService {
                                 type: ProjectTypeEnum.grid,
                                 backgroundColor: gerdan.backgroundColor,
                                 schema: JSON.stringify(schema),
-                                colormap: JSON.stringify(colormap)
+                                colormap: JSON.stringify(colormap),
+                                previewId: gerdan.previewId
                             }, { transaction });
                             await gerdan.update({ migrated: true }, { transaction });
                         }
@@ -143,7 +144,10 @@ export class InitService {
         const map: Map<number, string> = new Map();
 
         items.forEach(item => { if (!map.has(item.number)) map.set(item.number, item.color); });
-        map.forEach((value, key) => colormap.push({ color: value, number: key }));
+
+        for (const [key, value] of map) {
+            if(key && value) colormap.push({ color: value, number: key })
+        }
 
         return colormap;
     }
