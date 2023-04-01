@@ -53,6 +53,9 @@ export class Gerdan extends BaseModel {
     })
     backgroundColor: string;
 
+    @Column(DataType.BOOLEAN)
+    migrated: boolean;
+
     @HasMany(() => Pixel)
     pixels: Pixel[];
 

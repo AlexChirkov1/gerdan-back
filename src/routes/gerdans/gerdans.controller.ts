@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotImplementedException, Param, Post, Put, Query, Res, UseInterceptors } from '@nestjs/common';
 import { Response } from 'express';
 import { Transaction } from 'sequelize';
 import { UserSession, UserSessionData } from 'src/auth/decorators/userSession.decorator';
@@ -115,14 +115,15 @@ export class GerdansController {
         @UserSession() session: UserSessionData,
         @Body() body: GerdanInput
     ): Promise<GerdanDto> {
-        const newGerdan = await this.gerdansService.create(body, session.userId, transaction);
-        const gerdan = await this.gerdansService.getDetails(newGerdan.id, transaction);
-        const preview = createGerdanPreview(gerdan);
-        const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
-        await gerdan.update({ previewId: file.id }, { transaction });
-        await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
+        throw new NotImplementedException();
+        // const newGerdan = await this.gerdansService.create(body, session.userId, transaction);
+        // const gerdan = await this.gerdansService.getDetails(newGerdan.id, transaction);
+        // const preview = createGerdanPreview(gerdan);
+        // const file = await this.bucketService.prepareJPGFile(session.userId, transaction);
+        // await gerdan.update({ previewId: file.id }, { transaction });
+        // await this.supabaseService.addFileToStorage(preview, session.userId, `${file.name}.${getFileType(file.type)}`);
 
-        return new GerdanDto(gerdan);
+        // return new GerdanDto(gerdan);
     }
 
     @Put(':id')
@@ -134,14 +135,15 @@ export class GerdansController {
         @Param('id', Base10Pipe) id: string,
         @Body() body: GerdanInput
     ): Promise<GerdanDto> {
-        const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
-        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
-        await this.gerdansService.update(existedGerdan, body, transaction);
-        const gerdan = await this.gerdansService.getDetails(id, transaction);
-        const preview = createGerdanPreview(gerdan);
-        await this.supabaseService.updateFileInStorage(preview, session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
+        throw new NotImplementedException();
+        // const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
+        // if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
+        // await this.gerdansService.update(existedGerdan, body, transaction);
+        // const gerdan = await this.gerdansService.getDetails(id, transaction);
+        // const preview = createGerdanPreview(gerdan);
+        // await this.supabaseService.updateFileInStorage(preview, session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
 
-        return new GerdanDto(gerdan);
+        // return new GerdanDto(gerdan);
     }
 
     @Delete(':id')
@@ -152,13 +154,14 @@ export class GerdansController {
         @UserSession() session: UserSessionData,
         @Param('id', Base10Pipe) id: string,
     ) {
-        const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
-        if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
-        const gerdan = await this.gerdansService.getDetails(id, transaction);
-        if (gerdan?.previewId) {
-            await this.supabaseService.destroyFileInStorage(session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
-            await this.bucketService.destroyFile(gerdan.previewId, transaction);
-        }
-        await gerdan.destroy({ transaction });
+        throw new NotImplementedException();
+        // const existedGerdan = await this.gerdansService.getGerdanByIdForUser(id, session.userId, transaction);
+        // if (!existedGerdan) throw new NotFoundException(ERROR_MESSAGES.GERDANS.not_found);
+        // const gerdan = await this.gerdansService.getDetails(id, transaction);
+        // if (gerdan?.previewId) {
+        //     await this.supabaseService.destroyFileInStorage(session.userId, `${gerdan.preview.name}.${getFileType(gerdan.preview.type)}`);
+        //     await this.bucketService.destroyFile(gerdan.previewId, transaction);
+        // }
+        // await gerdan.destroy({ transaction });
     }
 }
