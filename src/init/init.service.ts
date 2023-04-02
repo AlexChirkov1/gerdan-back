@@ -80,6 +80,7 @@ export class InitService {
                             this.fillItemsWithMocks(items, gerdan.width, gerdan.height);
                             const schema = this.transformSchemaItemsToSchema(items);
                             schema.forEach(row => row.sort((a, b) => a.y - b.y));
+                            schema.forEach(row => row.sort((a, b) => a.x - b.x));
                             schema.sort((a, b) => a[0].x - b[0].x);
                             const colormap = this.getColormapFromSchemaItems(items);
 
