@@ -79,6 +79,8 @@ export class InitService {
                             const items = this.transformPixelsToSchemaItems(pixels, gerdan.backgroundColor);
                             this.fillItemsWithMocks(items, gerdan.width, gerdan.height);
                             const schema = this.transformSchemaItemsToSchema(items);
+                            schema.forEach(row => row.sort((a, b) => a.y - b.y));
+                            schema.sort((a, b) => a[0].x - b[0].x);
                             const colormap = this.getColormapFromSchemaItems(items);
 
                             await this.projectModel.create({
@@ -146,7 +148,7 @@ export class InitService {
         items.forEach(item => { if (!map.has(item.number)) map.set(item.number, item.color); });
 
         for (const [key, value] of map) {
-            if(key && value) colormap.push({ color: value, number: key })
+            if (key && value) colormap.push({ color: value, number: key });
         }
 
         return colormap;
