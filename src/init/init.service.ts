@@ -81,7 +81,7 @@ export class InitService {
                             const schema = this.transformSchemaItemsToSchema(items);
                             schema.forEach(row => row.sort((a, b) => a.y - b.y));
                             schema.forEach(row => row.sort((a, b) => a.x - b.x));
-                            schema.sort((a, b) => a[0].x - b[0].x);
+                            schema.sort((a, b) => a[0].y - b[0].y);
                             const colormap = this.getColormapFromSchemaItems(items);
 
                             await this.projectModel.create({
@@ -105,10 +105,10 @@ export class InitService {
         const PIXEL_SIZE = 25;
         const maxX = width * PIXEL_SIZE;
         const maxY = height * PIXEL_SIZE;
-        for (let x = 0; x <= maxX; x += 25) {
-            for (let y = 0; y <= maxY; y += 25) {
+        for (let y = 0; y < maxY; y += 25) {
+            for (let x = 0; x < maxX; x += 25) {
                 const index = items.findIndex(item => item.x === x && item.y === y);
-                if (index === -1) items.push({ x: x, y: y, filled: false });
+                if (index === -1) items.push({ x, y, filled: false });
             }
         }
     }
@@ -117,8 +117,8 @@ export class InitService {
         const schema: SchemaItem[] = [];
         for (const pixel of pixels) {
             schema.push({
-                x: pixel.x,
-                y: pixel.y,
+                x: Math.round(pixel.x / 25) * 25,
+                y: Math.round(pixel.y / 25) * 25,
                 filled: pixel.color.toLowerCase() !== backgroundColor.toLowerCase(),
                 color: pixel.color.toLowerCase() !== backgroundColor.toLowerCase() ? pixel.color.toLowerCase() : undefined,
                 number: pixel?.index,
@@ -131,11 +131,11 @@ export class InitService {
         const schema: Schema = [];
         const rowsSet: Set<number> = new Set();
 
-        items.forEach(item => rowsSet.add(item.x));
+        items.forEach(item => rowsSet.add(item.y));
         const rows = Array.from(rowsSet);
 
         for (const row of rows) {
-            const rowItems = items.filter(item => item.x === row);
+            const rowItems = items.filter(item => item.y === row);
             schema.push(rowItems);
         }
 
