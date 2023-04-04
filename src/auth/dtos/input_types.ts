@@ -13,6 +13,11 @@ export type LoginGoogleInput = {
     token: string;
 };
 
+export type LoginFacebookInput = {
+    userId: string;
+    accessToken: string
+};
+
 export type RefreshSessionInput = {
     refreshToken: string;
 }

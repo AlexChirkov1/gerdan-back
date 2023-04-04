@@ -1,0 +1,44 @@
+post:
+  operationId: facebook
+  security:
+    - {}
+  tags:
+    - auth
+  summary: Увійти через Facebook
+  description: |
+    Створити нову сесію на основі токена та айді користувача від Facebook.
+    Якщо обліковки користувача не знайдено, то сервер створить нову обліковку на основі даних Facebook
+    та створить нову локальну сесію.
+  requestBody:
+    content:
+      "application/json":
+        schema:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: Токен `accessToken` від Facebook
+            userId:
+              type: string
+              description: Ідентифікатор користувача `userID` від Facebook
+          required:
+            - accessToken
+            - userId
+  responses:
+    "201":
+      description: Created
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: components\session.yaml
+    "400":
+      description: Bad request
+      content:
+        "application/json":
+          schema:
+            type: object
+            allOf:
+              - $ref: ..\..\errors\bad_request_error.yaml
+              - $ref: ..\..\errors\invalid_token.yaml

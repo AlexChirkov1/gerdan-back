@@ -26,8 +26,8 @@ export class UsersService {
         return await this.userModel.create({ ...userData, email: userData.email.toLowerCase() }, { transaction });
     }
 
-    async createWithGoogle(userData: UserInfo, transaction?: Transaction): Promise<User> {
-        return await this.userModel.create({ email: userData.email.toLowerCase(), name: userData.name }, { transaction });
+    async createWithSocialAccount(userData: UserInfo, transaction?: Transaction): Promise<User> {
+        return await this.userModel.create({ email: userData.email.toLowerCase(), username: userData.name }, { transaction });
     }
 
     async findUserById(id: ID, transaction?: Transaction): Promise<User> {

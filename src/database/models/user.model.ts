@@ -17,10 +17,7 @@ export class User extends BaseModel {
     })
     email: string;
 
-    @Column({
-        type: DataType.CHAR(128),
-        allowNull: false,
-    })
+    @Column(DataType.CHAR(128))
     password: string;
 
     @Column(DataType.CHAR(32))
