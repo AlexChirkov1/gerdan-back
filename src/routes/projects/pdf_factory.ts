@@ -339,14 +339,14 @@ export class PDFFactory {
     }
 
     private addStatistics() {
-        const statistic: { number: string, color: string, count: number; }[] = [];
+        const statistic: { number: number, color: string, count: number; }[] = [];
         for (const row of this.parsedSchema) {
             for (const cell of row) {
                 if (!cell.filled) continue;
                 const index = statistic.findIndex(item => item.color === cell.color);
                 if (index === -1) {
                     statistic.push({
-                        number: cell.number.toString(),
+                        number: cell.number,
                         color: cell.color,
                         count: 1
                     });
@@ -355,7 +355,7 @@ export class PDFFactory {
                 }
             }
         }
-        statistic.sort((first, second) => second.count - first.count);
+        statistic.sort((first, second) => second.number - first.number);
 
         const bead = this.getScaledBead(ProjectTypeEnum.brick);
         this.builder
@@ -375,14 +375,14 @@ export class PDFFactory {
             let alias = null;
             let text = '';
             if (this.options.alias) {
-                alias = this.options.alias.find(aliasItem => aliasItem.number.toString() === item.number);
+                alias = this.options.alias.find(aliasItem => aliasItem.number.toString() === item.number.toString());
                 if (alias) text += ' ' + alias.as;
             }
 
             text += ` — ${item.count} шт.`;
             this.builder
                 .setColor(item.color)
-                .drawBead(x, y, item.number)
+                .drawBead(x, y, item.number.toString())
                 .setColor(this.builder.COLOR.BLACK)
                 .writeText(text, x + beadSpacing, y + this.builder.getMiddledPositionOfText(text, bead.height));
 
