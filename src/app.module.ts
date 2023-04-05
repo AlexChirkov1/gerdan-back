@@ -5,7 +5,7 @@ import models from 'src/database/models';
 import { AuthModule } from './auth/auth.module';
 import { HealthcheckModule } from './healthcheck/healthcheck.module';
 import { ProjectsModule } from './routes/projects/projects.module';
-// import { InitModule } from './init/init.module';
+import { InitModule } from './init/init.module';
 import { BucketModule } from './routes/bucket/bucket.module';
 import { DebugModule } from './routes/debug/debug.module';
 import { GerdansModule } from './routes/gerdans/gerdans.module';
@@ -25,7 +25,7 @@ const sequelizeLogger = new Logger('Sequelize');
             benchmark: true,
             logging: (message, time) => sequelizeLogger.log(`(${time}ms) ${message}`)
         }),
-        // InitModule,
+        InitModule,
         DebugModule,
         HealthcheckModule,
         AuthModule,

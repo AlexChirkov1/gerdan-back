@@ -1,38 +1,48 @@
-import { Module, OnModuleInit } from '@nestjs/common';
-import { InjectConnection, SequelizeModule } from '@nestjs/sequelize';
-import { Sequelize } from 'sequelize';
-// import { getFileType } from 'src/database/file_types';
-import { File } from 'src/database/models/file.model';
+import { Logger, Module, OnModuleInit } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
+import { Gerdan } from 'src/database/models/gerdan.model';
+import { Pixel } from 'src/database/models/pixel.model';
+import { Project } from 'src/database/models/project.model';
 import { BucketService } from 'src/routes/bucket/bucket.service';
 import { SupabaseService } from 'src/services/supabase/supabase.service';
+import { InitService } from './init.service';
+import { File } from 'src/database/models/file.model';
+import { User } from 'src/database/models/user.model';
 
 @Module({
-    imports: [SequelizeModule.forFeature([File])],
-    providers: [SupabaseService, BucketService]
+    imports: [SequelizeModule.forFeature([Gerdan, Project, Pixel, File, User])],
+    providers: [SupabaseService, BucketService, InitService]
 })
 export class InitModule implements OnModuleInit {
+    private logger: Logger;
     constructor(
-        private readonly bucketService: BucketService,
-        private readonly supabaseService: SupabaseService,
-        @InjectConnection()
-        private readonly sequelize: Sequelize,
-    ) { }
+        private readonly initService: InitService,
+    ) {
+        this.logger = new Logger('InitModule');
+    }
 
     async onModuleInit(): Promise<void> {
-        // await this.supabaseService.createBucket();
+        this.logger.log('SERVER preparation');
 
-        // await this.sequelize.transaction(async (transaction) => {
-        //     const totalCount = await this.bucketService.countFiles(transaction);
+        this.logger.log('SYNC FILES START');
+        try {
+            await this.initService.syncFiles();
+        } catch (e) {
+            this.logger.error('SYNC GERDANS FAILED. REASON: ', e);
+            throw e;
+        }
+        this.logger.log('SYNC FILES END');
 
-        //     for (let limit = 100, offset = 0; offset <= totalCount; offset += limit) {
-        //         const files = await this.bucketService.getFilesList(limit, offset, transaction);
-        //         if (!files.length) break;
+        this.logger.log('SYNC GERDANS START');
+        try {
+            await this.initService.migrateGerdans();
+        } catch (e) {
+            this.logger.error('SYNC GERDANS FAILED. REASON: ', e);
+            throw e;
+        }
+        this.logger.log('SYNC GERDANS END');
 
-        //         for (const file of files) {
-        //             if (!file.blob) continue;
-        //             this.supabaseService.addFileToStorage(file.blob, file.userId, `${file.name}.${getFileType(file.type)}`);
-        //         }
-        //     }
-        // });
+
+        this.logger.log('SERVER PREPARATION ENDED');
     }
 }

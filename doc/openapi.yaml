@@ -18,6 +18,8 @@ paths:
     $ref: api/healthcheck/ping.yaml
   /auth/google:
     $ref: api/auth/google.yaml
+  /auth/facebook:
+    $ref: api/auth/facebook.yaml
   /auth/registration:
     $ref: api/auth/registration.yaml
   /auth/login:

@@ -37,4 +37,8 @@ export class SupabaseService {
     async destroyFileInStorage(userId: ID, name: string) {
         await this.supabaseClient.storage.from(FILE_BUCKET).remove([`${userId}/${name}`]);
     }
+
+    async getFilesList(userId: ID, limit: number, offset: number) {
+        return await this.supabaseClient.storage.from(FILE_BUCKET).list(`${userId}`, { limit, offset });
+    }
 }

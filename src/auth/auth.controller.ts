@@ -4,17 +4,20 @@ import { ValidateSchema } from 'src/common/validate.decorator';
 import { SequelizeTransaction } from 'src/database/common/transaction.decorator';
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
 import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
+import { UnprocessableEntityException } from 'src/errors/handlers/unprocessable_entity_exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { UsersService } from 'src/routes/users/users.service';
+import { FacebookService } from 'src/services/facebook/facebook.service';
 import { GoogleService } from 'src/services/google/google.service';
 import { AuthService, JWT_TYPES } from './auth.service';
-import { LoginGoogleInput, LoginInput, RefreshSessionInput, RegistrationInput } from './dtos/input_types';
+import { LoginFacebookInput, LoginGoogleInput, LoginInput, RefreshSessionInput, RegistrationInput } from './dtos/input_types';
 import { NewUserDto } from './dtos/new-user.dto';
 import { SessionDto } from './dtos/session.dto';
 import { LoginSchema } from './schemas/login.schema';
 import { LoginGoogleSchema } from './schemas/login_google.schema';
 import { RefreshSessionSchema } from './schemas/refresh_session.schema';
 import { RegistrationSchema } from './schemas/registration.schema';
+import { LoginFacebookSchema } from './schemas/login_facebook.schema';
 
 @Controller('auth')
 @UseInterceptors(TransactionInterceptor)
@@ -23,6 +26,7 @@ export class AuthController {
         private readonly authService: AuthService,
         private readonly usersService: UsersService,
         private readonly googleService: GoogleService,
+        private readonly facebookService: FacebookService
     ) { }
 
     @Post('google')
@@ -33,7 +37,21 @@ export class AuthController {
     ): Promise<SessionDto> {
         const userData = await this.googleService.verifyToken(body.token);
         let user = await this.usersService.findUserByEmail(userData.email, transaction);
-        if (!user) user = await this.usersService.createWithGoogle(userData, transaction);
+        if (!user) user = await this.usersService.createWithSocialAccount(userData, transaction);
+        const { accessToken, refreshToken } = this.authService.generateTokens(user.id);
+        return new SessionDto(accessToken, refreshToken);
+    }
+
+    @Post('facebook')
+    @ValidateSchema(LoginFacebookSchema)
+    async createSessionWIthFB(
+        @SequelizeTransaction() transaction: Transaction,
+        @Body() body: LoginFacebookInput
+    ): Promise<SessionDto> {
+        const { data, error } = await this.facebookService.fetchUserData(body.userId, body.accessToken);
+        if (error) throw new BadRequestException(ERROR_MESSAGES.AUTH.invalid_token);
+        let user = await this.usersService.findUserByEmail(data.email, transaction);
+        if (!user) user = await this.usersService.createWithSocialAccount(data, transaction);
         const { accessToken, refreshToken } = this.authService.generateTokens(user.id);
         return new SessionDto(accessToken, refreshToken);
     }
