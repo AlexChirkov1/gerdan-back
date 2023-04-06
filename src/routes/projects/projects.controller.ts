@@ -16,7 +16,7 @@ import { NotFoundException } from 'src/errors/handlers/not_found.exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
 import { SupabaseService } from 'src/services/supabase/supabase.service';
 import { useDefault } from 'src/utils/use_default';
-import { BucketService } from '../bucket/bucket.service';
+import { BucketService } from '../../services/bucket/bucket.service';
 import { PDFOptionsInput, ProjectMetadataInput, ProjectSchemaInput } from './dtos/input_types';
 import { ProjectListDto } from './dtos/project_list.dto';
 import { ProjectMetadataDto } from './dtos/project_metadata.dto';
