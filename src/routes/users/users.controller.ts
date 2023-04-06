@@ -7,7 +7,6 @@ import { SequelizeTransaction } from 'src/database/common/transaction.decorator'
 import { TransactionInterceptor } from 'src/database/common/transaction.interceptor';
 import { BadRequestException } from 'src/errors/handlers/bad_request_exception';
 import { ERROR_MESSAGES } from 'src/errors/messages';
-import { GerdansService } from '../gerdans/gerdans.service';
 import { UserInput } from './dtos/input_types';
 import { UserDetailsDto } from './dtos/user-details.dto';
 import { UserSchema } from './schemas/user.schema';
@@ -16,10 +15,7 @@ import { UsersService } from './users.service';
 @Controller('users')
 @UseInterceptors(TransactionInterceptor)
 export class UsersController {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly gerdansService: GerdansService,
-    ) { }
+    constructor(private readonly usersService: UsersService) { }
 
     @Get('me')
     @Auth()
@@ -28,8 +24,7 @@ export class UsersController {
         @UserSession() session: UserSessionData
     ): Promise<UserDetailsDto> {
         const user = await this.usersService.findUserById(session.userId, transaction);
-        const gerdansCount = await this.gerdansService.countGerdansForUser(session.userId, transaction);
-        return new UserDetailsDto(user, gerdansCount);
+        return new UserDetailsDto(user);
     }
 
     @Patch('me')
@@ -42,12 +37,9 @@ export class UsersController {
     ): Promise<UserDetailsDto> {
         const existedUser = await this.usersService.findUserByEmail(body.email, transaction);
         if (existedUser) throw new BadRequestException(ERROR_MESSAGES.AUTH.email_already_exist);
-
         let user = await this.usersService.findUserById(session.userId, transaction);
         await this.usersService.update(user, body, transaction);
         user = await this.usersService.findUserById(user.id, transaction);
-        const gerdansCount = await this.gerdansService.countGerdansForUser(session.userId, transaction);
-
-        return new UserDetailsDto(user, gerdansCount);
+        return new UserDetailsDto(user);
     }
 }

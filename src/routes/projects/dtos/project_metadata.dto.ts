@@ -2,7 +2,7 @@ import { Expose, Transform } from 'class-transformer';
 import { BaseDto } from 'src/common/base.dto';
 import { ObjectType } from 'src/common/object_type.decorator';
 import { Project, ProjectTypeEnum } from 'src/database/models/project.model';
-import { PreviewDto } from 'src/routes/bucket/dtos/preview.dto';
+import { PreviewDto } from '../dtos/preview.dto';
 
 export class ProjectMetadataDto extends BaseDto {
     @Expose()

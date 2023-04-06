@@ -7,11 +7,8 @@ export class UserDetailsDto extends BaseDto {
     username: string;
     @Expose()
     email: string;
-    @Expose()
-    gerdansCount: number;
-    constructor(user: Partial<User>, gerdansCount: number) {
+    constructor(user: Partial<User>) {
         super(user);
         Object.assign(this, user);
-        this.gerdansCount = gerdansCount;
     }
 }
