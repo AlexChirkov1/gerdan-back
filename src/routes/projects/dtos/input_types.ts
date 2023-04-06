@@ -12,6 +12,7 @@ export type ColormapItem = {
 };
 
 export type ProjectSchemaInput = {
+    name: string;
     type: string;
     backgroundColor?: string;
     schema: SchemaItem[][];

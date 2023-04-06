@@ -11,6 +11,7 @@ type ProjectMetadata = {
 };
 
 type ProjectSchemaData = {
+    name: string;
     type: number;
     backgroundColor?: string;
     schema: string;
@@ -37,7 +38,7 @@ export class ProjectsService {
             .findOne({ where: { id, userId, }, transaction });
     }
 
-    async updateSchema(id: ID, projectSchema: ProjectSchemaData, transaction?: Transaction): Promise<void> {
+    async updateProject(id: ID, projectSchema: ProjectSchemaData, transaction?: Transaction): Promise<void> {
         await this.projectModel.update(projectSchema, { where: { id }, transaction });
     }
 

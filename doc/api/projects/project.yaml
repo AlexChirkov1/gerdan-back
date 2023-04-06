@@ -73,6 +73,9 @@ put:
         schema:
           type: object
           properties:
+            name:
+              type: string
+              maxLength: 255
             type:
               type: string
               enum:

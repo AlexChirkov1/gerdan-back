@@ -90,7 +90,8 @@ export class ProjectsController {
     ) {
         let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
-        await this.projectsService.updateSchema(project.id, {
+        await this.projectsService.updateProject(project.id, {
+            name: body.name ?? project.name,
             type: body.type ? ProjectTypeEnum[body.type] : project.type,
             backgroundColor: body.backgroundColor ?? project.backgroundColor,
             schema: JSON.stringify(body.schema),
