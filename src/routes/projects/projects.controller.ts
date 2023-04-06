@@ -158,7 +158,6 @@ export class ProjectsController {
             .startDocument()
             .addInfoPage()
             .addSchema()
-        
         if (body.instruction) factory.addInstruction()
         const file = await factory.endDocument();
 

@@ -405,7 +405,7 @@ export class PDFFactory {
     }
 
     private getScaledBead(type: ProjectTypeEnum): Bead {
-        const scaleFactor = 0.5;
+        const scaleFactor = 0.75;
         return {
             width: BeadSettings[type].width * scaleFactor,
             height: BeadSettings[type].height * scaleFactor,
