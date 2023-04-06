@@ -27,5 +27,6 @@ export type ProjectMetadataInput = {
 export type PDFOptionsInput = {
     numbers: boolean;
     rulers: boolean;
+    instruction: boolean;
     alias: { number: number, as: string; }[];
 };

@@ -26,6 +26,9 @@ post:
             rulers:
               type: boolean
               default: true
+            instruction:
+              type: boolean
+              default: true
             alias:
               type: array
               items:
