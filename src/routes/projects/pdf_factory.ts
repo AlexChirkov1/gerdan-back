@@ -232,6 +232,7 @@ export class PDFFactory {
         const halfBeadWidth = half(bead.width);
         const halfBeadHeight = half(bead.height);
         let rulerColsCounter = 0, rulerRowsCounter = 0;
+        const rulerLineHeight = 20;
         for (const slice of cut.slices) {
             for (let row = 0; row < slice.length; row++) {
                 if (this.project.type === ProjectTypeEnum.brick) {
@@ -263,13 +264,13 @@ export class PDFFactory {
                             rulerText = (++rulerColsCounter).toString();
                             centeredPositionOfText = this.builder.getCenteredPositionOfText(rulerText, bead.width);
                             x = this.builder.PADDING.LEFT + col * bead.width + xShift;
-                            y = this.builder.PADDING.TOP - bead.height;
+                            y = this.builder.PADDING.TOP - rulerLineHeight;
                             if (!(rulerColsCounter % 5)) this.builder.writeText(rulerText, x + centeredPositionOfText, y - 2);
                             this.builder.drawLine(
                                 x + halfBeadWidth,
-                                y + bead.height * .75,
+                                y + rulerLineHeight * .75,
                                 x + halfBeadWidth,
-                                y + bead.height
+                                y + rulerLineHeight
                             );
                         }
                     }
