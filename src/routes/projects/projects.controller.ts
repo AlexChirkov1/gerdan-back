@@ -90,7 +90,8 @@ export class ProjectsController {
     ) {
         let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
-        await this.projectsService.updateSchema(project.id, {
+        await this.projectsService.updateProject(project.id, {
+            name: body.name ?? project.name,
             type: body.type ? ProjectTypeEnum[body.type] : project.type,
             backgroundColor: body.backgroundColor ?? project.backgroundColor,
             schema: JSON.stringify(body.schema),
@@ -145,20 +146,20 @@ export class ProjectsController {
         @Body() body: PDFOptionsInput,
         @Res() res: Response,
     ) {
-
         useDefault(body, 'numbers', true);
         useDefault(body, 'rulers', true);
+        useDefault(body, 'instruction', true);
 
         let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
         project = await this.projectsService.getDetails(id, transaction);
         const factory = new PDFFactory(project, { numbers: body.numbers, rulers: body.rulers, alias: body.alias });
-        const file = await factory
+        factory
             .startDocument()
             .addInfoPage()
             .addSchema()
-            .addInstruction()
-            .endDocument();
+        if (body.instruction) factory.addInstruction()
+        const file = await factory.endDocument();
 
         res.status(201).send(file);
     }

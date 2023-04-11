@@ -75,7 +75,7 @@ export class PDFFactory {
     }
 
     private addGridInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
-        const bead = this.getScaledBead(ProjectTypeEnum.brick);
+        const bead = this.getFixedScaledBead(ProjectTypeEnum.brick);
         this.builder.addPage();
         this.addSiteMark();
         this.builder
@@ -93,33 +93,37 @@ export class PDFFactory {
             const newRowTextLength = this.builder.getTextWidth(newRowText) + beadSpacing;
             this.builder.writeText(newRowText, x, y);
             x += newRowTextLength;
-            for (const item of row) {
-                const text = ` — ${item.count} шт.`;
-                const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
-                if (x + cellLength >= this.builder.PADDING.RIGHT) {
-                    x = this.builder.PADDING.LEFT + newRowTextLength + beadSpacing;
-                    y += bead.height + lineSpacing;
-                    if (y >= this.builder.PADDING.BOTTOM) {
-                        y = this.builder.PADDING.TOP;
-                        this.builder.addPage();
-                        this.addSiteMark();
-                        this.builder
-                            .setFont(this.builder.FONT.REGULAR)
-                            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+            if (row.length) {
+                for (const item of row) {
+                    const text = ` — ${item.count} шт.`;
+                    const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
+                    if (x + cellLength >= this.builder.PADDING.RIGHT) {
+                        x = this.builder.PADDING.LEFT + newRowTextLength;
+                        y += lineSpacing;
+                        if (y + lineSpacing >= this.builder.PADDING.BOTTOM) {
+                            y = this.builder.PADDING.TOP;
+                            this.builder.addPage();
+                            this.addSiteMark();
+                            this.builder
+                                .setFont(this.builder.FONT.REGULAR)
+                                .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+                        }
                     }
+                    this.builder
+                        .setColor(item.color)
+                        .drawBead(x, y, item.symbol);
+                    x += bead.width;
+                    this.builder
+                        .setColor(this.builder.COLOR.BLACK)
+                        .writeText(text, x, y);
+                    x += beadSpacing + this.builder.getTextWidth(text);
                 }
-                this.builder
-                    .setColor(item.color)
-                    .drawBead(x, y, item.symbol);
-                x += bead.width;
-                this.builder
-                    .setColor(this.builder.COLOR.BLACK)
-                    .writeText(text, x, y);
-                x += beadSpacing + this.builder.getTextWidth(text);
-            }
-            y += bead.height + lineSpacing;
+            } else this.builder
+                .setColor(this.builder.COLOR.BLACK)
+                .writeText(' пропуск!', x, y);
+            y += lineSpacing;
             x = this.builder.PADDING.LEFT;
-            if (y >= this.builder.PADDING.BOTTOM) {
+            if (y + lineSpacing >= this.builder.PADDING.BOTTOM) {
                 y = this.builder.PADDING.TOP;
                 this.builder.addPage();
                 this.addSiteMark();
@@ -131,7 +135,7 @@ export class PDFFactory {
     }
 
     private addPeyoteInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
-        const bead = this.getScaledBead(ProjectTypeEnum.brick);
+        const bead = this.getFixedScaledBead(ProjectTypeEnum.brick);
         this.builder.addPage();
         this.addSiteMark();
         this.builder
@@ -150,34 +154,39 @@ export class PDFFactory {
             const newRowTextLength = this.builder.getTextWidth(newRowText) + beadSpacing;
             this.builder.writeText(newRowText, x, y);
             x += newRowTextLength;
-            for (let i = 0; i < row.length; i++) {
-                const itemIndex = reversed ? row.length - 1 - i : i;
-                const text = ` — ${row[itemIndex].count} шт.`;
-                const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
-                if (x + cellLength >= this.builder.PADDING.RIGHT) {
-                    x = this.builder.PADDING.LEFT + this.builder.getTextWidth(rowsCounter + ' ряд:') + beadSpacing;
-                    y += bead.height + lineSpacing;
-                    if (y >= this.builder.PADDING.BOTTOM) {
-                        y = this.builder.PADDING.TOP;
-                        this.builder.addPage();
-                        this.addSiteMark();
-                        this.builder
-                            .setFont(this.builder.FONT.REGULAR)
-                            .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+
+            if (row.length) {
+                for (let i = 0; i < row.length; i++) {
+                    const itemIndex = reversed ? row.length - 1 - i : i;
+                    const text = ` — ${row[itemIndex].count} шт.`;
+                    const cellLength = bead.width + beadSpacing + this.builder.getTextWidth(text);
+                    if (x + cellLength >= this.builder.PADDING.RIGHT) {
+                        x = this.builder.PADDING.LEFT + this.builder.getTextWidth(`${rowsCounter} ряд:`) + beadSpacing;
+                        y += lineSpacing;
+                        if (y + lineSpacing >= this.builder.PADDING.BOTTOM) {
+                            y = this.builder.PADDING.TOP;
+                            this.builder.addPage();
+                            this.addSiteMark();
+                            this.builder
+                                .setFont(this.builder.FONT.REGULAR)
+                                .setFontSize(this.builder.FONT_SIZE.SECONDARY);
+                        }
                     }
+                    this.builder
+                        .setColor(row[itemIndex].color)
+                        .drawBead(x, y, row[itemIndex].symbol);
+                    x += bead.width;
+                    this.builder
+                        .setColor(this.builder.COLOR.BLACK)
+                        .writeText(text, x, y);
+                    x += beadSpacing + this.builder.getTextWidth(text);
                 }
-                this.builder
-                    .setColor(row[itemIndex].color)
-                    .drawBead(x, y, row[itemIndex].symbol);
-                x += bead.width;
-                this.builder
-                    .setColor(this.builder.COLOR.BLACK)
-                    .writeText(text, x, y);
-                x += beadSpacing + this.builder.getTextWidth(text);
-            }
-            y += bead.height + lineSpacing;
+            } else this.builder
+                .setColor(this.builder.COLOR.BLACK)
+                .writeText(' пропуск!', x, y);
+            y += lineSpacing;
             x = this.builder.PADDING.LEFT;
-            if (y >= this.builder.PADDING.BOTTOM) {
+            if (y + lineSpacing >= this.builder.PADDING.BOTTOM) {
                 y = this.builder.PADDING.TOP;
                 this.builder.addPage();
                 this.addSiteMark();
@@ -215,12 +224,7 @@ export class PDFFactory {
     }
 
     addSchema() {
-        const bead = this.getScaledBead(this.project.type);
-        let beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
-        if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
-        const beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
-
-        const cut = this.cutSchemaIntoSlices(bead, beadsRowsPerPage, beadsColsPerPage);
+        const { cut, bead, beadsRowsPerPage } = this.calculateCutAndBeads();
 
         const lineWidth = 0.5;
         this.builder
@@ -237,6 +241,8 @@ export class PDFFactory {
         const halfBeadWidth = half(bead.width);
         const halfBeadHeight = half(bead.height);
         let rulerColsCounter = 0, rulerRowsCounter = 0;
+        const rulerLineHeight = 20;
+        let lockedColCounter = 0;
         for (const slice of cut.slices) {
             for (let row = 0; row < slice.length; row++) {
                 if (this.project.type === ProjectTypeEnum.brick) {
@@ -245,6 +251,7 @@ export class PDFFactory {
                 }
                 const beadsOutOfPageHeight = !(row % beadsRowsPerPage);
                 if (beadsOutOfPageHeight) {
+                    // Logic to check new schema part
                     if (colsCounter >= cut.totalCols) {
                         colsCounter = 0;
                         rulerColsCounter = 0;
@@ -259,6 +266,7 @@ export class PDFFactory {
                         .setFontSize(this.builder.FONT_SIZE.SECONDARY)
                         .addSliceInfo(rowsCounter, cut.totalRows, ++colsCounter, cut.totalCols);
 
+                    // Draw horizontal ruler
                     if (this.options.rulers) {
                         let x = 0, y = 0;
                         let rulerText = '';
@@ -268,25 +276,34 @@ export class PDFFactory {
                             rulerText = (++rulerColsCounter).toString();
                             centeredPositionOfText = this.builder.getCenteredPositionOfText(rulerText, bead.width);
                             x = this.builder.PADDING.LEFT + col * bead.width + xShift;
-                            y = this.builder.PADDING.TOP - bead.height;
+                            y = this.builder.PADDING.TOP - rulerLineHeight;
                             if (!(rulerColsCounter % 5)) this.builder.writeText(rulerText, x + centeredPositionOfText, y - 2);
                             this.builder.drawLine(
                                 x + halfBeadWidth,
-                                y + bead.height * .75,
+                                y + rulerLineHeight * .75,
                                 x + halfBeadWidth,
-                                y + bead.height
+                                y + rulerLineHeight
                             );
                         }
                     }
                 }
 
+
+
+                // Draw vertical ruler
                 if (this.options.rulers) {
+                    if (lockedColCounter !== colsCounter) {
+                        lockedColCounter = colsCounter;
+                        rulerRowsCounter = (rowsCounter - 1) * slice.length;
+                    }
+
                     const x = this.builder.PADDING.LEFT;
                     const y = this.builder.PADDING.TOP + row * bead.height + yShift;
                     const rulerText = (++rulerRowsCounter).toString();
                     const middledPositionOfText = this.builder.getMiddledPositionOfText(rulerText, bead.height);
+                    const textWidth = this.builder.getTextWidth(rulerText);
                     this.builder.setColor(this.builder.COLOR.GRAY);
-                    if (!(rulerRowsCounter % 10)) this.builder.writeText(rulerText, x - bead.width, y + middledPositionOfText);
+                    if (!(rulerRowsCounter % 10)) this.builder.writeText(rulerText, x - textWidth - 2, y + middledPositionOfText);
                     this.builder.drawLine(
                         x + bead.width,
                         y + bead.height - lineWidth,
@@ -295,6 +312,7 @@ export class PDFFactory {
                     );
                 }
 
+                // Draw schema
                 for (let col = 0; col < slice[row].length; col++) {
                     if (this.project.type === ProjectTypeEnum.peyote) yShift = col % 2 ? halfBeadHeight : yShift = 0;
                     const x = col * bead.width + this.builder.PADDING.LEFT + xShift;
@@ -307,6 +325,27 @@ export class PDFFactory {
             }
         }
         return this;
+    }
+
+    private calculateCutAndBeads() {
+        let bead = this.getFixedScaledBead(this.project.type);
+        let beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
+        if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
+        let beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
+
+        let cut = this.cutSchemaIntoSlices(bead, beadsRowsPerPage, beadsColsPerPage);
+
+        // check if schema is tall
+        if (cut.totalCols === 1) {
+            bead = this.getPageWidthScaledBead(bead, Math.max(this.parsedSchema[0].length, this.parsedSchema[1].length));
+            beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
+            if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
+            beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
+        }
+
+        cut = this.cutSchemaIntoSlices(bead, beadsRowsPerPage, beadsColsPerPage);
+
+        return { cut, bead, beadsRowsPerPage, beadsColsPerPage };
     }
 
     private cutSchemaIntoSlices(bead: Bead, rowsPerSlice: number, colsPerSlice: number) {
@@ -339,6 +378,8 @@ export class PDFFactory {
     }
 
     private addStatistics() {
+        const statistics = `Всього: ${this.parsedSchema.length} рядків, ${Math.max(this.parsedSchema[0].length, this.parsedSchema[1].length)} стовпців.`;
+
         const statistic: { number: number, color: string, count: number; }[] = [];
         for (const row of this.parsedSchema) {
             for (const cell of row) {
@@ -355,9 +396,9 @@ export class PDFFactory {
                 }
             }
         }
-        statistic.sort((first, second) => second.number - first.number);
+        statistic.sort((first, second) => first.number - second.number);
 
-        const bead = this.getScaledBead(ProjectTypeEnum.brick);
+        const bead = this.getFixedScaledBead(ProjectTypeEnum.brick);
         this.builder
             .setBead(bead)
             .setLineWidth(0.5)
@@ -365,12 +406,14 @@ export class PDFFactory {
             .setFontSize(this.builder.FONT_SIZE.SECONDARY)
             .setColor(this.builder.COLOR.BLACK);
 
-        const initialY = 330;
-        let x = this.builder.PADDING.LEFT;
+        const initialY = 360;
         let y = initialY;
+        let x = this.builder.PADDING.LEFT;
         const lineSpacing = bead.height + half(bead.height);
         const beadSpacing = bead.width;
-        const columnSpacing = 200;
+        const columnSpacing = 250;
+        this.builder.writeText(statistics, x, 330);
+
         for (const item of statistic) {
             let alias = null;
             let text = '';
@@ -404,11 +447,20 @@ export class PDFFactory {
             .writeText(siteMark, this.builder.getCenteredPositionOfText(siteMark, this.builder.SIZE.WIDTH), this.builder.PADDING.BOTTOM);
     }
 
-    private getScaledBead(type: ProjectTypeEnum): Bead {
-        const scaleFactor = 0.5;
+    private getFixedScaledBead(type: ProjectTypeEnum): Bead {
+        const scaleFactor = 0.75;
         return {
             width: BeadSettings[type].width * scaleFactor,
             height: BeadSettings[type].height * scaleFactor,
+        };
+    }
+
+    private getPageWidthScaledBead(bead: Bead, schemaRowCounts: number): any {
+        const beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
+        const ratio = beadsColsPerPage / schemaRowCounts;
+        return {
+            width: +((bead.width * ratio).toFixed(2)),
+            height: +((bead.height * ratio).toFixed(2)),
         };
     }
 }

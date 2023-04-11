@@ -12,6 +12,7 @@ export type ColormapItem = {
 };
 
 export type ProjectSchemaInput = {
+    name: string;
     type: string;
     backgroundColor?: string;
     schema: SchemaItem[][];
@@ -27,5 +28,6 @@ export type ProjectMetadataInput = {
 export type PDFOptionsInput = {
     numbers: boolean;
     rulers: boolean;
+    instruction: boolean;
     alias: { number: number, as: string; }[];
 };

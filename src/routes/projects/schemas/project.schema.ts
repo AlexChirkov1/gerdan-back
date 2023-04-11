@@ -3,6 +3,9 @@ import { validationRules } from 'src/common/validations.rules';
 import { ProjectTypeKeys } from '../resources/project_type_keys';
 
 export const ProjectSchema = Joi.object({
+    name: Joi.string()
+        .max(validationRules.stringMaxLength)
+        .optional(),
     type: Joi.string()
         .valid(...ProjectTypeKeys)
         .optional(),

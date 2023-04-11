@@ -17,10 +17,10 @@ export class PDFBuilder {
     } as const;
     FONT_SIZE = {
         TITLE: 20,
-        SUBTITLE: 14,
-        PRIMARY: 14,
-        SECONDARY: 8,
-        PAGE_NUMBER: 8,
+        SUBTITLE: 16,
+        PRIMARY: 12,
+        SECONDARY: 12,
+        PAGE_NUMBER: 12,
     } as const;
     FONT = {
         REGULAR: 'Roboto-Regular',
@@ -163,7 +163,7 @@ export class PDFBuilder {
         }
         return this;
     }
-    
+
     public drawLine(startX: number, startY: number, endX: number, endY: number) {
         this.doc
             .moveTo(startX, startY)
