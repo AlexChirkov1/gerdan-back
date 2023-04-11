@@ -163,7 +163,7 @@ export class PDFBuilder {
         }
         return this;
     }
-    
+
     public drawLine(startX: number, startY: number, endX: number, endY: number) {
         this.doc
             .moveTo(startX, startY)
