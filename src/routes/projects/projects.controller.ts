@@ -96,6 +96,7 @@ export class ProjectsController {
             backgroundColor: body.backgroundColor ?? project.backgroundColor,
             schema: JSON.stringify(body.schema),
             colormap: JSON.stringify(body.colormap),
+            alias: body.alias && JSON.stringify(body.alias),
         }, transaction);
         project = await this.projectsService.getDetails(id, transaction);
         const preview = createPreview(project);
@@ -152,13 +153,15 @@ export class ProjectsController {
 
         let project = await this.projectsService.getProjectByIdForUser(id, session.userId, transaction);
         if (!project) throw new NotFoundException(ERROR_MESSAGES.PROJECTS.not_found);
+        if (body.alias) await this.projectsService.updateProject(project.id, { alias: JSON.stringify(body.alias) });
         project = await this.projectsService.getDetails(id, transaction);
-        const factory = new PDFFactory(project, { numbers: body.numbers, rulers: body.rulers, alias: body.alias });
+
+        const factory = new PDFFactory(project, { numbers: body.numbers, rulers: body.rulers });
         factory
             .startDocument()
             .addInfoPage()
-            .addSchema()
-        if (body.instruction) factory.addInstruction()
+            .addSchema();
+        if (body.instruction) factory.addInstruction();
         const file = await factory.endDocument();
 
         res.status(201).send(file);

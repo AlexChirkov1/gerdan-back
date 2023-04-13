@@ -1,3 +1,8 @@
+export type AliasItem = {
+    number: number;
+    as: string;
+}
+
 export type SchemaItem = {
     x: number;
     y: number;
@@ -12,11 +17,12 @@ export type ColormapItem = {
 };
 
 export type ProjectSchemaInput = {
-    name: string;
-    type: string;
+    name?: string;
+    type?: string;
     backgroundColor?: string;
-    schema: SchemaItem[][];
+    schema?: SchemaItem[][];
     colormap: ColormapItem[];
+    alias?: AliasItem[];
 };
 
 export type ProjectMetadataInput = {
@@ -29,5 +35,5 @@ export type PDFOptionsInput = {
     numbers: boolean;
     rulers: boolean;
     instruction: boolean;
-    alias: { number: number, as: string; }[];
+    alias: AliasItem[];
 };
