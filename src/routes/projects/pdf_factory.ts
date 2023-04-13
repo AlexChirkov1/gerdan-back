@@ -1,25 +1,27 @@
 import { Project, ProjectTypeEnum, Schema, SchemaItem } from 'src/database/models/project.model';
 import { FileStorageHelper } from 'src/utils/file_storage.helper';
 import { half } from 'src/utils/half';
+import { AliasItem } from './dtos/input_types';
 import { PDFBuilder } from './pdf_builder';
 import { Bead, BeadSettings } from './resources/bead';
 
 type PDFOptions = {
     numbers: boolean;
     rulers: boolean;
-    alias: { number: number, as: string; }[];
 };
 export class PDFFactory {
     private builder: PDFBuilder;
     private project: Project;
     private filePath: string;
     private parsedSchema: Schema;
+    private parsedAlias: AliasItem[];
 
     constructor(project: Project, private readonly options: PDFOptions) {
         this.project = project;
         this.builder = new PDFBuilder(this.project.name, this.project.author.username);
         this.filePath = FileStorageHelper.prepareFilePathToTempFolder(`${project.author.username}-${project.name}`, 'pdf');
         this.parsedSchema = JSON.parse(project.schema);
+        this.parsedAlias = project.alias ? JSON.parse(project.alias) : [];
         if (!this.options.numbers) this.builder.setBeadNumbers(false);
     }
 
@@ -417,8 +419,8 @@ export class PDFFactory {
         for (const item of statistic) {
             let alias = null;
             let text = '';
-            if (this.options.alias) {
-                alias = this.options.alias.find(aliasItem => aliasItem.number.toString() === item.number.toString());
+            if (this.parsedAlias) {
+                alias = this.parsedAlias.find(aliasItem => aliasItem.number.toString() === item.number.toString());
                 if (alias) text += ' ' + alias.as;
             }
 

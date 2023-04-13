@@ -11,11 +11,12 @@ type ProjectMetadata = {
 };
 
 type ProjectSchemaData = {
-    name: string;
-    type: number;
+    name?: string;
+    type?: number;
     backgroundColor?: string;
-    schema: string;
-    colormap: string;
+    schema?: string;
+    colormap?: string;
+    alias?: string;
 };
 
 @Injectable()

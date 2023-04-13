@@ -67,6 +67,9 @@ export class Project extends BaseModel {
 
     @Column(DataType.TEXT)
     colormap: string;
+    
+    @Column(DataType.TEXT)
+    alias: string;
 
     @BelongsTo(() => User)
     author: User;

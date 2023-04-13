@@ -67,4 +67,17 @@ export const ProjectSchema = Joi.object({
         .unique((prev, next) => prev.color === next.color || prev.number === next.number)
         .min(1)
         .required(),
+    alias: Joi.array()
+        .items(Joi.object({
+            number: Joi
+                .number()
+                .min(0)
+                .required(),
+            as: Joi
+                .string()
+                .min(0)
+                .max(100)
+                .required()
+        }))
+        .optional()
 });
