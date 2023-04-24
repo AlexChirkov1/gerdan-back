@@ -19,13 +19,6 @@ export class File extends Model {
     @CreatedAt
     createdAt: Date;
 
-    // TODO: deprecated
-    @Column({
-        type: DataType.BLOB,
-        allowNull: true,
-    })
-    blob: Buffer;
-
     @Column({
         type: DataType.INTEGER,
         allowNull: false,

@@ -19,7 +19,7 @@ export class PDFBuilder {
         TITLE: 20,
         SUBTITLE: 16,
         PRIMARY: 12,
-        SECONDARY: 12,
+        SECONDARY: 10,
         PAGE_NUMBER: 12,
     } as const;
     FONT = {

@@ -77,7 +77,7 @@ export class PDFFactory {
     }
 
     private addGridInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
-        const bead = this.getFixedScaledBead(ProjectTypeEnum.brick);
+        const bead = this.getFixedScaledBead(ProjectTypeEnum.grid);
         this.builder.addPage();
         this.addSiteMark();
         this.builder
@@ -137,7 +137,7 @@ export class PDFFactory {
     }
 
     private addPeyoteInstruction(instruction: { color: string, count: number, symbol: string; }[][]) {
-        const bead = this.getFixedScaledBead(ProjectTypeEnum.brick);
+        const bead = this.getFixedScaledBead(ProjectTypeEnum.grid);
         this.builder.addPage();
         this.addSiteMark();
         this.builder
@@ -330,7 +330,7 @@ export class PDFFactory {
     }
 
     private calculateCutAndBeads() {
-        let bead = this.getFixedScaledBead(this.project.type);
+        const bead = this.getFixedScaledBead(this.project.type);
         let beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
         if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
         let beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
@@ -339,7 +339,6 @@ export class PDFFactory {
 
         // check if schema is tall
         if (cut.totalCols === 1) {
-            bead = this.getPageWidthScaledBead(bead, Math.max(this.parsedSchema[0].length, this.parsedSchema[1].length));
             beadsRowsPerPage = ~~(this.builder.printHeight / bead.height);
             if (this.project.type === ProjectTypeEnum.peyote) --beadsRowsPerPage;
             beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
@@ -450,19 +449,10 @@ export class PDFFactory {
     }
 
     private getFixedScaledBead(type: ProjectTypeEnum): Bead {
-        const scaleFactor = 0.75;
+        const scaleFactor = 0.65;
         return {
             width: BeadSettings[type].width * scaleFactor,
             height: BeadSettings[type].height * scaleFactor,
-        };
-    }
-
-    private getPageWidthScaledBead(bead: Bead, schemaRowCounts: number): any {
-        const beadsColsPerPage = ~~(this.builder.printWidth / bead.width);
-        const ratio = beadsColsPerPage / schemaRowCounts;
-        return {
-            width: +((bead.width * ratio).toFixed(2)),
-            height: +((bead.height * ratio).toFixed(2)),
         };
     }
 }
